@@ -73,13 +73,24 @@ const [admins] = await conn.query('SELECT id FROM admins LIMIT 1');
 // Los datos de ejemplo (disponibilidad y sistemas) solo se crean en la PRIMERA ejecución:
 // así este script puede correr en cada arranque sin volver a crear lo que borres desde el panel.
 const firstRun = !admins.length;
-if (firstRun) {
-  if (!process.env.ADMIN_USER || !process.env.ADMIN_PASSWORD) {
-    throw new Error('Define ADMIN_USER y ADMIN_PASSWORD para crear el administrador inicial');
+// Se recortan espacios/saltos de línea que suelen colarse al pegar valores en el panel de Railway
+const ADMIN_USER = (process.env.ADMIN_USER || '').trim();
+const ADMIN_PASSWORD = (process.env.ADMIN_PASSWORD || '').trim();
+// RESET_ADMIN=true restablece usuario y clave del admin a ADMIN_USER / ADMIN_PASSWORD (úsalo una vez y quítalo)
+const resetAdmin = String(process.env.RESET_ADMIN || '').trim().toLowerCase() === 'true';
+
+if (firstRun || resetAdmin) {
+  if (!ADMIN_USER || !ADMIN_PASSWORD) {
+    throw new Error('Define ADMIN_USER y ADMIN_PASSWORD para crear/restablecer el administrador');
   }
-  const hash = await bcrypt.hash(process.env.ADMIN_PASSWORD, 12);
-  await conn.query('INSERT INTO admins (username, password_hash) VALUES (?, ?)', [process.env.ADMIN_USER, hash]);
-  console.log('Admin creado:', process.env.ADMIN_USER);
+  const hash = await bcrypt.hash(ADMIN_PASSWORD, 12);
+  if (firstRun) {
+    await conn.query('INSERT INTO admins (username, password_hash) VALUES (?, ?)', [ADMIN_USER, hash]);
+    console.log('Admin creado:', ADMIN_USER);
+  } else {
+    await conn.query('UPDATE admins SET username = ?, password_hash = ? ORDER BY id LIMIT 1', [ADMIN_USER, hash]);
+    console.log('Admin RESTABLECIDO:', ADMIN_USER, '(quita la variable RESET_ADMIN)');
+  }
 }
 
 const [av] = await conn.query('SELECT id FROM availability LIMIT 1');
