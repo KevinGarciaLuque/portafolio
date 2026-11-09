@@ -4,7 +4,7 @@ import multer from 'multer';
 import path from 'path';
 import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
-import { pool } from '../db.js';
+import { pool, UPLOAD_DIR } from '../db.js';
 import { requireAdmin, signToken } from '../auth.js';
 
 const r = Router();
@@ -13,7 +13,7 @@ const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, standardHe
 const ALLOWED = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.mp4', '.webm']);
 const upload = multer({
   storage: multer.diskStorage({
-    destination: 'uploads',
+    destination: UPLOAD_DIR,
     filename: (_q, f, cb) => cb(null, crypto.randomBytes(12).toString('hex') + path.extname(f.originalname).toLowerCase()),
   }),
   limits: { fileSize: 80 * 1024 * 1024 },

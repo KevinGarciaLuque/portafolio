@@ -1,9 +1,12 @@
 {
   "name": "cv",
   "private": true,
+  "engines": { "node": ">=20" },
   "scripts": {
     "setup": "npm i --prefix server && npm i --prefix client && npm run init-db --prefix server",
     "dev:server": "npm run dev --prefix server",
-    "dev:client": "npm run dev --prefix client"
+    "dev:client": "npm run dev --prefix client",
+    "build": "npm install --prefix server --omit=dev && npm install --prefix client --include=dev --ignore-scripts && npm run build --prefix client",
+    "start": "node server/src/initDb.js && node server/src/index.js"
   }
 }

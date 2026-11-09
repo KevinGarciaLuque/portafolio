@@ -1,9 +1,9 @@
 import mysql from 'mysql2/promise';
 import bcrypt from 'bcryptjs';
 import 'dotenv/config';
-import { dbConfig } from './db.js';
+import { dbConfig, DB_NAME } from './db.js';
 
-const DB = process.env.DB_NAME;
+const DB = DB_NAME;
 
 const conn = await mysql.createConnection({ ...dbConfig, multipleStatements: true });
 await conn.query(`CREATE DATABASE IF NOT EXISTS \`${DB}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
@@ -70,14 +70,20 @@ CREATE TABLE IF NOT EXISTS settings (
 `);
 
 const [admins] = await conn.query('SELECT id FROM admins LIMIT 1');
-if (!admins.length) {
+// Los datos de ejemplo (disponibilidad y sistemas) solo se crean en la PRIMERA ejecución:
+// así este script puede correr en cada arranque sin volver a crear lo que borres desde el panel.
+const firstRun = !admins.length;
+if (firstRun) {
+  if (!process.env.ADMIN_USER || !process.env.ADMIN_PASSWORD) {
+    throw new Error('Define ADMIN_USER y ADMIN_PASSWORD para crear el administrador inicial');
+  }
   const hash = await bcrypt.hash(process.env.ADMIN_PASSWORD, 12);
   await conn.query('INSERT INTO admins (username, password_hash) VALUES (?, ?)', [process.env.ADMIN_USER, hash]);
   console.log('Admin creado:', process.env.ADMIN_USER);
 }
 
 const [av] = await conn.query('SELECT id FROM availability LIMIT 1');
-if (!av.length) {
+if (firstRun && !av.length) {
   for (let d = 1; d <= 5; d++) {
     await conn.query('INSERT INTO availability (weekday,start_time,end_time) VALUES (?,?,?)', [d, '09:00:00', '17:00:00']);
   }
@@ -85,7 +91,7 @@ if (!av.length) {
 }
 
 const [sys] = await conn.query('SELECT id FROM systems LIMIT 1');
-if (!sys.length) {
+if (firstRun && !sys.length) {
   const demo = [
     ['Sistema de Inventario', 'Inventory System', 'Control total de tu stock', 'Total control of your stock'],
     ['Sistema de Facturación', 'Billing System', 'Facturas y cobros en un solo lugar', 'Invoices and payments in one place'],
