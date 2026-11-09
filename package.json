@@ -1,0 +1,9 @@
+{
+  "name": "cv",
+  "private": true,
+  "scripts": {
+    "setup": "npm i --prefix server && npm i --prefix client && npm run init-db --prefix server",
+    "dev:server": "npm run dev --prefix server",
+    "dev:client": "npm run dev --prefix client"
+  }
+}

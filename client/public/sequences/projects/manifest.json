@@ -1,0 +1,10 @@
+{
+  "name": "projects",
+  "frames": 90,
+  "ext": "webp",
+  "aspect": 1.8182,
+  "poster": "poster.webp",
+  "desktop": "d",
+  "mobile": "m",
+  "pad": 4
+}
