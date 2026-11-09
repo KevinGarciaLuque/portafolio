@@ -5,7 +5,23 @@ import { dbConfig, DB_NAME } from './db.js';
 
 const DB = DB_NAME;
 
-const conn = await mysql.createConnection({ ...dbConfig, multipleStatements: true });
+// En Railway la red privada puede tardar unos segundos en resolver el host de MySQL al arrancar el contenedor
+async function connectWithRetry() {
+  const tries = Number(process.env.DB_CONNECT_TRIES || 12);
+  const delayMs = Number(process.env.DB_CONNECT_DELAY_MS || 3000);
+  console.log(`Conectando a MySQL ${dbConfig.host}:${dbConfig.port} como ${dbConfig.user}, BD "${DB}"`);
+  for (let i = 1; i <= tries; i++) {
+    try {
+      return await mysql.createConnection({ ...dbConfig, multipleStatements: true });
+    } catch (e) {
+      console.error(`MySQL no disponible (intento ${i}/${tries}): ${e.code || ''} ${e.message}`);
+      if (i === tries) throw e;
+      await new Promise((r) => setTimeout(r, delayMs));
+    }
+  }
+}
+
+const conn = await connectWithRetry();
 await conn.query(`CREATE DATABASE IF NOT EXISTS \`${DB}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
 await conn.query(`USE \`${DB}\``);
 
