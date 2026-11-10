@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../api.js';
 import { refreshScroll } from '../lib/motion.js';
@@ -102,7 +103,10 @@ export default function Catalog() {
       <div className="cards">
         {systems?.map((s, i) => <Card key={s.id} s={s} i={i} onOpen={setOpen} />)}
       </div>
-      <AnimatePresence>{open && <Modal s={open} onClose={() => setOpen(null)} />}</AnimatePresence>
+      {createPortal(
+        <AnimatePresence>{open && <Modal s={open} onClose={() => setOpen(null)} />}</AnimatePresence>,
+        document.body
+      )}
     </section>
   );
 }
