@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import { pool } from '../db.js';
+import { buildSlots } from '../slots.js';
+import { cleanPath, refHost, isBot } from '../analytics.js';
 
 const r = Router();
-const SLOT_MIN = 60;
+const trackLimiter = rateLimit({ windowMs: 60 * 1000, limit: 60, standardHeaders: true, legacyHeaders: false });
 const limiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 20, standardHeaders: true, legacyHeaders: false });
 const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -41,20 +43,20 @@ async function freeSlots(dateStr) {
   const [rules] = await pool.query('SELECT * FROM availability WHERE weekday=? AND active=1', [d.getDay()]);
   const [taken] = await pool.query(
     "SELECT TIME_FORMAT(start_at,'%H:%i') t FROM meetings WHERE DATE(start_at)=? AND status<>'cancelled'", [dateStr]);
-  const takenSet = new Set(taken.map((x) => x.t));
-  const now = new Date();
-  const out = [];
-  for (const rule of rules) {
-    const [sh, sm] = rule.start_time.split(':').map(Number);
-    const [eh, em] = rule.end_time.split(':').map(Number);
-    for (let m = sh * 60 + sm; m + SLOT_MIN <= eh * 60 + em; m += SLOT_MIN) {
-      const t = `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
-      const dt = new Date(`${dateStr}T${t}:00`);
-      if (dt > now && !takenSet.has(t)) out.push(t);
-    }
-  }
-  return out;
+  return buildSlots(dateStr, rules, new Set(taken.map((x) => x.t)));
 }
+
+// Cuenta una visita (la web la envía una sola vez por página y por sesión). Sin IP, sin cookies.
+r.post('/track', trackLimiter, async (req, res) => {
+  const path = cleanPath(req.body?.path);
+  if (!path || isBot(req.get('user-agent'))) return res.status(204).end();
+  const ref = refHost(req.body?.ref, req.get('host'));
+  await pool.query(
+    'INSERT INTO page_views (day, path, ref, views) VALUES (CURDATE(), ?, ?, 1) ON DUPLICATE KEY UPDATE views = views + 1',
+    [path, ref]
+  );
+  res.status(204).end();
+});
 
 r.get('/slots', async (req, res) => {
   const date = String(req.query.date || '');

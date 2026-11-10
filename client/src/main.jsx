@@ -1,9 +1,10 @@
-import { StrictMode, Suspense, lazy } from 'react';
+import { StrictMode, Suspense, lazy, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { WhatsAppFloat } from './components/SocialLinks.jsx';
 import { LangProvider, useLang } from './i18n.jsx';
 import { ProfileProvider } from './profileContext.jsx';
+import { api } from './api.js';
 import Home from './pages/Home.jsx';
 import NotFound from './pages/NotFound.jsx';
 // El admin y las páginas secundarias se descargan solo cuando se visitan (el inicio pesa menos)
@@ -17,6 +18,21 @@ import './cinema.css';
 function GlobalChrome() {
   const { pathname } = useLocation();
   const { t } = useLang();
+
+  // Cuenta la visita una sola vez por página y por sesión (sin cookies; el servidor no guarda IP)
+  useEffect(() => {
+    if (pathname.startsWith('/admin')) return;
+    let first = true; // el origen (referrer) solo cuenta en la primera página de la sesión
+    try {
+      const key = `v:${pathname}`;
+      if (sessionStorage.getItem(key)) return;
+      first = !sessionStorage.getItem('v:any');
+      sessionStorage.setItem(key, '1');
+      sessionStorage.setItem('v:any', '1');
+    } catch { /* sin almacenamiento: se cuenta igual */ }
+    api('/track', { method: 'POST', body: { path: pathname, ref: first ? document.referrer : '' } }).catch(() => {});
+  }, [pathname]);
+
   if (pathname.startsWith('/admin')) return null;
   return (
     <>

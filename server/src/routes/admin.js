@@ -44,6 +44,36 @@ r.get('/stats', async (_q, res) => {
   res.json({ systems: s.n, unread: m.n, pending: p.n, upcoming: u.n });
 });
 
+// Analítica propia: visitas por periodo, páginas más vistas, orígenes y serie de los últimos 14 días
+r.get('/analytics', async (_q, res) => {
+  const [[t]] = await pool.query(`SELECT
+    COALESCE(SUM(CASE WHEN day = CURDATE() THEN views END), 0) today,
+    COALESCE(SUM(CASE WHEN day >= CURDATE() - INTERVAL 6 DAY THEN views END), 0) week,
+    COALESCE(SUM(views), 0) month
+    FROM page_views WHERE day >= CURDATE() - INTERVAL 29 DAY`);
+  const [pages] = await pool.query(
+    'SELECT path, SUM(views) views FROM page_views WHERE day >= CURDATE() - INTERVAL 29 DAY GROUP BY path ORDER BY views DESC LIMIT 8');
+  const [refs] = await pool.query(
+    "SELECT ref, SUM(views) views FROM page_views WHERE ref <> '' AND day >= CURDATE() - INTERVAL 29 DAY GROUP BY ref ORDER BY views DESC LIMIT 8");
+  const [[direct]] = await pool.query(
+    "SELECT COALESCE(SUM(views), 0) n FROM page_views WHERE ref = '' AND day >= CURDATE() - INTERVAL 29 DAY");
+  const [daily] = await pool.query(
+    "SELECT DATE_FORMAT(day, '%Y-%m-%d') day, SUM(views) views FROM page_views WHERE day >= CURDATE() - INTERVAL 13 DAY GROUP BY day ORDER BY day");
+  res.json({ today: Number(t.today), week: Number(t.week), month: Number(t.month), direct: Number(direct.n),
+    pages: pages.map((x) => ({ ...x, views: Number(x.views) })), refs: refs.map((x) => ({ ...x, views: Number(x.views) })),
+    daily: daily.map((x) => ({ day: x.day, views: Number(x.views) })) });
+});
+
+// Respaldo: descarga todo el contenido (menos las claves del administrador) en un solo archivo JSON
+r.get('/backup', async (_q, res) => {
+  const tables = ['systems', 'settings', 'messages', 'meetings', 'availability', 'blocked_days', 'page_views'];
+  const data = {};
+  for (const tb of tables) [data[tb]] = await pool.query(`SELECT * FROM ${tb}`);
+  const stamp = new Date().toISOString().slice(0, 10);
+  res.set('Content-Disposition', `attachment; filename="respaldo-portafolio-${stamp}.json"`);
+  res.json({ app: 'portafolio', created_at: new Date().toISOString(), tables: data });
+});
+
 // Campanita: lo nuevo que requiere atención (mensajes sin leer y reuniones pendientes)
 r.get('/notifications', async (_q, res) => {
   const [messages] = await pool.query('SELECT id, name, subject, message, created_at FROM messages WHERE is_read=0 ORDER BY created_at DESC LIMIT 8');

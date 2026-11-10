@@ -32,10 +32,81 @@ function Login({ onOk }) {
 
 function Dash() {
   const [s, setS] = useState(null);
-  useEffect(() => { api('/admin/stats', { auth: true }).then(setS); }, []);
+  const [a, setA] = useState(null);
+  useEffect(() => {
+    api('/admin/stats', { auth: true }).then(setS);
+    api('/admin/analytics', { auth: true }).then(setA).catch(() => setA(false));
+  }, []);
   if (!s) return <p className="muted">Cargando…</p>;
   const items = [['Sistemas', s.systems], ['Mensajes sin leer', s.unread], ['Reuniones pendientes', s.pending], ['Próximas reuniones', s.upcoming]];
-  return <div className="stats">{items.map(([l, n]) => <div className="stat" key={l}><b>{n}</b><span>{l}</span></div>)}</div>;
+  return (
+    <>
+      <div className="stats">{items.map(([l, n]) => <div className="stat" key={l}><b>{n}</b><span>{l}</span></div>)}</div>
+      <Analytics a={a} />
+    </>
+  );
+}
+
+// Últimos 14 días rellenando con 0 los días sin visitas
+function lastDays(daily, n = 14) {
+  const map = new Map(daily.map((d) => [d.day, d.views]));
+  const out = [];
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    out.push({ day: key, views: map.get(key) || 0 });
+  }
+  return out;
+}
+
+function BarList({ title, rows, label, empty }) {
+  const max = Math.max(1, ...rows.map((r) => r.views));
+  return (
+    <div className="panel">
+      <h4>{title}</h4>
+      {!rows.length && <p className="muted">{empty}</p>}
+      <ul className="barlist">
+        {rows.map((r) => (
+          <li key={label(r)}>
+            <span className="bl-name" title={label(r)}>{label(r)}</span>
+            <span className="bl-bar"><i style={{ width: `${(r.views / max) * 100}%` }} /></span>
+            <b>{r.views}</b>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function Analytics({ a }) {
+  if (a === null) return <p className="muted">Cargando visitas…</p>;
+  if (a === false) return <p className="muted">No se pudieron cargar las visitas.</p>;
+  const days = lastDays(a.daily);
+  const peak = Math.max(1, ...days.map((d) => d.views));
+  return (
+    <>
+      <h3 className="admin-sub">Visitas al portafolio</h3>
+      <div className="stats">
+        {[['Hoy', a.today], ['Últimos 7 días', a.week], ['Últimos 30 días', a.month]].map(([l, n]) => <div className="stat" key={l}><b>{n}</b><span>{l}</span></div>)}
+      </div>
+      <div className="panel">
+        <h4>Últimos 14 días</h4>
+        <div className="daybars" role="img" aria-label={`Visitas por día, últimos 14 días. Máximo ${peak}.`}>
+          {days.map((d) => (
+            <div key={d.day} className="daybar" title={`${d.day}: ${d.views}`}>
+              <i style={{ height: `${Math.max(3, (d.views / peak) * 100)}%` }} className={d.views ? '' : 'zero'} />
+              <small>{d.day.slice(8)}</small>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="row">
+        <BarList title="Páginas más vistas (30 días)" rows={a.pages} label={(r) => r.path} empty="Aún sin visitas." />
+        <BarList title="De dónde llegan (30 días)" rows={[...(a.direct ? [{ ref: 'Directo / sin origen', views: a.direct }] : []), ...a.refs]} label={(r) => r.ref} empty="Aún sin visitas." />
+      </div>
+      <p className="muted">Se cuenta una visita por página y por sesión. No se guardan IP, cookies ni datos personales, y los robots se ignoran.</p>
+    </>
+  );
 }
 
 const EMPTY = { title_es: '', title_en: '', tagline_es: '', tagline_en: '', desc_es: '', desc_en: '', url: '', image_url: '', video_url: '', tags: '', sort_order: 0, visible: 1 };
@@ -326,7 +397,29 @@ function Account() {
     try { await api('/admin/password', { method: 'POST', auth: true, body: f }); setM({ t: 'Clave actualizada ✓', ok: true }); setF({ current: '', next: '' }); }
     catch (x) { setM({ t: x.message, ok: false }); }
   }
+  const [bk, setBk] = useState({ busy: false, err: '' });
+  async function backup() {
+    setBk({ busy: true, err: '' });
+    try {
+      const res = await fetch('/api/admin/backup', { headers: { Authorization: `Bearer ${getToken()}` } });
+      if (!res.ok) throw new Error('No se pudo generar el respaldo');
+      const blob = await res.blob();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `respaldo-portafolio-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+      setBk({ busy: false, err: '' });
+    } catch (x) { setBk({ busy: false, err: x.message }); }
+  }
   return (
+    <>
+    <div className="panel">
+      <h4>Respaldo</h4>
+      <p className="muted">Descarga un archivo con todo tu contenido: catálogo, perfil, mensajes, reuniones, disponibilidad y visitas. No incluye tu clave. Las imágenes y videos no van dentro; viven en el volumen de Railway. Guárdalo en un lugar privado.</p>
+      <div><button type="button" className="btn ghost" disabled={bk.busy} onClick={backup}>{bk.busy ? 'Generando…' : 'Descargar respaldo'}</button></div>
+      {bk.err && <p className="err">{bk.err}</p>}
+    </div>
     <form className="form panel" onSubmit={submit}>
       <h4>Cambiar clave</h4>
       <input type="password" placeholder="Clave actual" autoComplete="current-password" value={f.current} onChange={(e) => setF({ ...f, current: e.target.value })} />
@@ -334,6 +427,7 @@ function Account() {
       <button className="btn primary">Actualizar</button>
       {m.t && <p className={m.ok ? 'ok' : 'err'}>{m.t}</p>}
     </form>
+    </>
   );
 }
 

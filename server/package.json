@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
-    "init-db": "node src/initDb.js"
+    "init-db": "node src/initDb.js",
+    "test": "node --test tests/slots.test.js tests/analytics.test.js",
+    "smoke": "node tests/smoke.mjs"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
