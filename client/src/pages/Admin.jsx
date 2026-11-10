@@ -74,7 +74,6 @@ function SystemForm({ initial, onDone, onCancel }) {
         <label className="file">Video corto (tráiler)<input type="file" accept="video/mp4,video/webm" onChange={(e) => up('video_url', e.target.files[0])} /><small>{f.video_url}</small></label>
       </div>
       <div className="row">
-        <label>Orden <input type="number" value={f.sort_order} onChange={set('sort_order')} /></label>
         <label className="check"><input type="checkbox" checked={!!f.visible} onChange={(e) => setF({ ...f, visible: e.target.checked ? 1 : 0 })} /> Visible en el sitio</label>
       </div>
       <div className="row">
@@ -92,15 +91,32 @@ function Systems() {
   const load = useCallback(() => api('/admin/systems', { auth: true }).then(setList), []);
   useEffect(() => { load(); }, [load]);
   const del = async (s) => { if (confirm(`¿Eliminar "${s.title_es}"?`)) { await api(`/admin/systems/${s.id}`, { method: 'DELETE', auth: true }); load(); } };
+  const [drag, setDrag] = useState(null);
+  const [over, setOver] = useState(null);
+  async function drop(to) {
+    const from = drag;
+    setDrag(null); setOver(null);
+    if (from === null || from === to) return;
+    const next = [...list];
+    next.splice(to, 0, next.splice(from, 1)[0]);
+    setList(next);
+    try { await api('/admin/systems-order', { method: 'PUT', auth: true, body: { ids: next.map((s) => s.id) } }); }
+    catch { alert('No se pudo guardar el orden'); }
+    load();
+  }
   if (edit) return <SystemForm initial={edit} onDone={() => { setEdit(null); load(); }} onCancel={() => setEdit(null)} />;
   return (
     <>
       <button className="btn primary" onClick={() => setEdit({ ...EMPTY, sort_order: list.length + 1 })}>+ Nuevo sistema</button>
+      <p className="muted">Arrastra las filas hacia arriba o abajo para cambiar el orden del catálogo.</p>
       <table className="table">
         <thead><tr><th>#</th><th>Título</th><th>Link</th><th>Visible</th><th /></tr></thead>
-        <tbody>{list.map((s) => (
-          <tr key={s.id}>
-            <td>{s.sort_order}</td><td>{s.title_es}</td>
+        <tbody>{list.map((s, i) => (
+          <tr key={s.id} draggable
+            style={{ cursor: 'grab', opacity: drag === i ? 0.4 : 1, outline: over === i && drag !== i ? '1px solid var(--cyan)' : 'none' }}
+            onDragStart={() => setDrag(i)} onDragEnd={() => { setDrag(null); setOver(null); }}
+            onDragOver={(e) => { e.preventDefault(); setOver(i); }} onDrop={(e) => { e.preventDefault(); drop(i); }}>
+            <td>{i + 1}</td><td>{s.title_es}</td>
             <td className="trunc">{s.url || <em className="muted">sin link</em>}</td>
             <td>{s.visible ? '✓' : '—'}</td>
             <td className="actions"><button onClick={() => setEdit(s)}>Editar</button><button className="danger" onClick={() => del(s)}>Eliminar</button></td>

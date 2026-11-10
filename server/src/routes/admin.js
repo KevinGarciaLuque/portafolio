@@ -56,6 +56,13 @@ r.post('/systems', async (req, res) => {
   const [x] = await pool.query(`INSERT INTO systems (${FIELDS.join(',')}) VALUES (${FIELDS.map(() => '?').join(',')})`, pick(req.body));
   res.json({ id: x.insertId });
 });
+// Reordena el catálogo: recibe los ids en el orden deseado y asigna sort_order 1..n
+r.put('/systems-order', async (req, res) => {
+  const ids = req.body.ids;
+  if (!Array.isArray(ids) || !ids.every((n) => Number.isInteger(n))) return res.status(400).json({ error: 'Lista de ids inválida' });
+  for (let i = 0; i < ids.length; i++) await pool.query('UPDATE systems SET sort_order=? WHERE id=?', [i + 1, ids[i]]);
+  res.json({ ok: true });
+});
 r.put('/systems/:id', async (req, res) => {
   await pool.query(`UPDATE systems SET ${FIELDS.map((f) => f + '=?').join(',')} WHERE id=?`, [...pick(req.body), req.params.id]);
   res.json({ ok: true });
