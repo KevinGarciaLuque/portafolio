@@ -23,6 +23,7 @@ export function ProfileProvider({ children }) {
     whatsapp: data.whatsapp || '',
     location: data.location || '',
     photo: data.photo || '',
+    cvAvailable: data.cv_available === 'true', // el admin subió un CV y tiene la descarga activada
     social: Object.fromEntries(['linkedin', 'github', 'facebook', 'instagram', 'tiktok', 'youtube', 'x'].map((k) => [k, data[k] || ''])),
     experience: parseList(data.experience),
     education: parseList(data.education),

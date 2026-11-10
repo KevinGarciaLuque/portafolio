@@ -3,6 +3,8 @@ import rateLimit from 'express-rate-limit';
 import { pool } from '../db.js';
 import { buildSlots } from '../slots.js';
 import { cleanPath, refHost, isBot } from '../analytics.js';
+import { getCv } from '../cv.js';
+import { cvDownloadName } from '../cvName.js';
 
 const r = Router();
 const trackLimiter = rateLimit({ windowMs: 60 * 1000, limit: 60, standardHeaders: true, legacyHeaders: false });
@@ -22,7 +24,23 @@ r.get('/systems/:id', async (req, res) => {
 
 r.get('/profile', async (_req, res) => {
   const [rows] = await pool.query('SELECT k, v FROM settings');
-  res.json(Object.fromEntries(rows.map((x) => [x.k, x.v])));
+  // Los ajustes internos del CV (cv_*) no se publican: solo se indica si hay uno disponible
+  const out = Object.fromEntries(rows.filter((x) => !x.k.startsWith('cv_')).map((x) => [x.k, x.v]));
+  const cv = await getCv();
+  out.cv_available = cv.enabled && cv.exists ? 'true' : 'false';
+  res.json(out);
+});
+
+// Descarga del CV: solo existe mientras el admin lo tenga activado. Sin caché, para que desactivarlo surta efecto al instante.
+r.get('/cv', trackLimiter, async (_req, res) => {
+  const cv = await getCv();
+  if (!cv.enabled || !cv.exists) return res.status(404).json({ error: 'CV no disponible' });
+  const [nameRows] = await pool.query("SELECT v FROM settings WHERE k = 'name'");
+  try {
+    await pool.query("INSERT INTO page_views (day, path, ref, views) VALUES (CURDATE(), '/descarga-cv', '', 1) ON DUPLICATE KEY UPDATE views = views + 1");
+  } catch { /* contar la descarga es opcional */ }
+  res.set('Cache-Control', 'no-store');
+  res.download(cv.full, cvDownloadName(nameRows[0]?.v));
 });
 
 r.post('/contact', limiter, async (req, res) => {

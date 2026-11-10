@@ -19,6 +19,11 @@ export const DB_NAME = env.DB_NAME || env.MYSQLDATABASE || 'cv_portfolio';
 export const UPLOAD_DIR = path.resolve(env.UPLOAD_DIR || 'uploads');
 mkdirSync(UPLOAD_DIR, { recursive: true });
 
+// Archivos que NO se sirven públicamente (p. ej. el CV: solo se entrega por /api/cv cuando el admin lo activa).
+// Queda junto a la carpeta de subidas, así que en Railway también vive dentro del volumen (/data/private-files).
+export const PRIVATE_DIR = path.resolve(env.PRIVATE_DIR || path.join(path.dirname(UPLOAD_DIR), 'private-files'));
+mkdirSync(PRIVATE_DIR, { recursive: true });
+
 export const pool = mysql.createPool({
   ...dbConfig,
   database: DB_NAME,

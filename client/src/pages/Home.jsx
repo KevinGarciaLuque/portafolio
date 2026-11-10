@@ -9,6 +9,7 @@ import Contact from '../components/Contact.jsx';
 import Testimonials from '../components/Testimonials.jsx';
 import SceneSection from '../components/SceneSection.jsx';
 import SocialLinks from '../components/SocialLinks.jsx';
+import CvButton from '../components/CvButton.jsx';
 import { ScrollTrigger, refreshScroll } from '../lib/motion.js';
 
 export default function Home() {
@@ -76,6 +77,7 @@ export default function Home() {
           <Link to="/sobre-mi">{t.nav.about}</Link>
           <button className={active === 'book' ? 'active' : ''} onClick={() => go('book')}>{t.nav.book}</button>
           <button className={active === 'contact' ? 'active' : ''} onClick={() => go('contact')}>{t.nav.contact}</button>
+          <CvButton className="nav-cv" />
           <button className="lang" aria-label={lang === 'es' ? 'Switch to English' : 'Cambiar a español'} onClick={() => setLang(lang === 'es' ? 'en' : 'es')}>{lang === 'es' ? 'EN' : 'ES'}</button>
         </div>
       </nav>

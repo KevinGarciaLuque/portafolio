@@ -3,6 +3,7 @@ import { api } from '../api.js';
 import { useLang } from '../i18n.jsx';
 import { useProfile } from '../profileContext.jsx';
 import SocialLinks, { digits } from './SocialLinks.jsx';
+import CvButton from './CvButton.jsx';
 
 export default function Contact() {
   const { t } = useLang();
@@ -40,6 +41,7 @@ export default function Contact() {
           {profile.email && <li><span>✉</span> <a href={`mailto:${profile.email}`}>{profile.email}</a></li>}
           {profile.location && <li><span>⌖</span> {profile.location}</li>}
         </ul>
+        <CvButton className="btn ghost" />
         <SocialLinks />
       </div>
       <form className="form contact-form" onSubmit={submit}>

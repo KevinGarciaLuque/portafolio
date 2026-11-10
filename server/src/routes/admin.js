@@ -4,8 +4,11 @@ import multer from 'multer';
 import path from 'path';
 import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
-import { pool, UPLOAD_DIR } from '../db.js';
+import fs from 'fs';
+import { pool, UPLOAD_DIR, PRIVATE_DIR } from '../db.js';
 import { requireAdmin, signToken } from '../auth.js';
+import { getCv, setSetting, removeCvFile } from '../cv.js';
+import { looksLikePdf, cleanOriginalName } from '../cvName.js';
 
 const r = Router();
 const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, standardHeaders: true, legacyHeaders: false });
@@ -34,6 +37,60 @@ r.use(requireAdmin);
 r.post('/upload', upload.single('file'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'Archivo no permitido' });
   res.json({ url: `/uploads/${req.file.filename}` });
+});
+
+// ---- Currículum (CV): subir PDF, activar/desactivar la descarga pública, ver y eliminar ----
+const cvUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024, files: 1 } });
+
+r.get('/cv', async (_q, res) => {
+  const cv = await getCv();
+  const st = cv.exists ? fs.statSync(cv.full) : null;
+  res.json({ hasFile: cv.exists, enabled: cv.enabled && cv.exists, name: cv.name, size: st?.size || 0, updated: st ? st.mtime.toISOString() : null });
+});
+
+// El admin puede ver el PDF aunque la descarga pública esté desactivada
+r.get('/cv/file', async (_q, res) => {
+  const cv = await getCv();
+  if (!cv.exists) return res.status(404).json({ error: 'No hay CV cargado' });
+  res.set('Cache-Control', 'no-store').type('application/pdf').sendFile(cv.full);
+});
+
+r.post('/cv', (req, res) => {
+  cvUpload.single('file')(req, res, async (err) => {
+    if (err) return res.status(400).json({ error: err.code === 'LIMIT_FILE_SIZE' ? 'El PDF no puede pesar más de 10 MB' : 'Archivo no válido' });
+    const f = req.file;
+    if (!f) return res.status(400).json({ error: 'Selecciona un archivo PDF' });
+    if (!looksLikePdf(f.buffer)) return res.status(400).json({ error: 'El archivo no es un PDF válido' });
+    try {
+      const before = await getCv();
+      const file = `cv-${crypto.randomBytes(12).toString('hex')}.pdf`;
+      fs.writeFileSync(path.join(PRIVATE_DIR, file), f.buffer);
+      await setSetting('cv_file', file);
+      await setSetting('cv_name', cleanOriginalName(f.originalname));
+      if (!before.exists) await setSetting('cv_enabled', 'true'); // la primera vez queda activado; luego se respeta el interruptor
+      if (before.file) removeCvFile(before.file);
+      res.json({ ok: true });
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: 'No se pudo guardar el CV' });
+    }
+  });
+});
+
+r.put('/cv', async (req, res) => {
+  const enabled = req.body?.enabled === true;
+  if (enabled && !(await getCv()).exists) return res.status(400).json({ error: 'Primero sube un CV en PDF' });
+  await setSetting('cv_enabled', enabled ? 'true' : 'false');
+  res.json({ ok: true, enabled });
+});
+
+r.delete('/cv', async (_q, res) => {
+  const cv = await getCv();
+  if (cv.file) removeCvFile(cv.file);
+  await setSetting('cv_file', '');
+  await setSetting('cv_name', '');
+  await setSetting('cv_enabled', 'false');
+  res.json({ ok: true });
 });
 
 r.get('/stats', async (_q, res) => {

@@ -3,6 +3,7 @@ import { motion, useInView } from 'framer-motion';
 import { useLang } from '../i18n.jsx';
 import { profile } from '../profile.js';
 import { useProfile } from '../profileContext.jsx';
+import CvButton from './CvButton.jsx';
 
 function Counter({ to, suffix = '' }) {
   const ref = useRef(null);
@@ -46,6 +47,7 @@ export default function About() {
           </motion.article>
         ))}
       </div>
+      <div className="about-cv"><CvButton className="btn primary" /></div>
       <div className="stats">
         {profile.stats.map((s) => (
           <div key={s.label.es} className="stat">

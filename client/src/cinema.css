@@ -95,3 +95,12 @@
 @keyframes waFloat { 0%, 100% { translate: 0 0; } 50% { translate: 0 -6px; } }
 @media (max-width: 600px) { .wa-float { right: 16px; bottom: 16px; width: 52px; height: 52px; font-size: 27px; } }
 .exp-edit { background: rgba(5,12,22,.5); }
+
+/* Descargar CV */
+.nav-links .nav-cv { border: 1px solid var(--cyan); border-radius: 6px; color: var(--cyan); padding: 7px 14px; font-weight: 600; transition: background .25s, box-shadow .25s; }
+.nav-links .nav-cv:hover { background: rgba(25,227,255,.12); box-shadow: var(--glow); }
+@media (max-width: 760px) { .nav-links .nav-cv { margin-top: 10px; text-align: center; padding: 12px; border: 1px solid var(--cyan); } }
+.about-cv { display: flex; justify-content: center; margin: 4px 0 36px; }
+.cv-switch { align-items: flex-start; }
+.cv-switch input { margin-top: 4px; }
+.cv-file { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 14px 16px; border: 1px solid var(--line); border-radius: 8px; background: rgba(5,12,22,.5); }

@@ -7,6 +7,7 @@ import Experience from '../components/Experience.jsx';
 import Education from '../components/Education.jsx';
 import SceneSection from '../components/SceneSection.jsx';
 import SocialLinks from '../components/SocialLinks.jsx';
+import CvButton from '../components/CvButton.jsx';
 import { ScrollTrigger, refreshScroll } from '../lib/motion.js';
 
 export default function AboutPage() {
@@ -44,6 +45,7 @@ export default function AboutPage() {
           <Link to="/">← {t.nav.home}</Link>
           <Link to="/#book">{t.nav.book}</Link>
           <Link to="/#contact">{t.nav.contact}</Link>
+          <CvButton className="nav-cv" />
           <button className="lang" aria-label={lang === 'es' ? 'Switch to English' : 'Cambiar a español'} onClick={() => setLang(lang === 'es' ? 'en' : 'es')}>{lang === 'es' ? 'EN' : 'ES'}</button>
         </div>
       </nav>

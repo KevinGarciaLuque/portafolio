@@ -33,6 +33,7 @@ const dict = {
     experience: { kicker: 'La trayectoria', title: 'EXPERIENCIA', empty: 'Pronto agregaré mi experiencia.' },
     testimonials: { kicker: 'Lo que dicen', title: 'TESTIMONIOS' },
     skip: 'Saltar al contenido',
+    cv: { download: 'Descargar CV' },
     notFound: { title: 'PÁGINA NO ENCONTRADA', text: 'La página que buscas no existe o fue movida.', back: 'Volver al inicio' },
     education: { kicker: 'Aprendizaje continuo', title: 'FORMACIÓN', empty: 'Pronto agregaré mi formación.' },
     about: {
@@ -121,6 +122,7 @@ const dict = {
     experience: { kicker: 'The journey', title: 'EXPERIENCE', empty: 'My experience will be added soon.' },
     testimonials: { kicker: 'What they say', title: 'TESTIMONIALS' },
     skip: 'Skip to content',
+    cv: { download: 'Download CV' },
     notFound: { title: 'PAGE NOT FOUND', text: 'The page you are looking for does not exist or was moved.', back: 'Back to home' },
     education: { kicker: 'Always learning', title: 'EDUCATION', empty: 'My education will be added soon.' },
     about: {

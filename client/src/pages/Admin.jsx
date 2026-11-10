@@ -278,6 +278,78 @@ const SOCIAL_FIELDS = [
 ];
 const EXP_EMPTY = { role_es: '', role_en: '', company: '', period: '', desc_es: '', desc_en: '' };
 
+const fmtSize = (b) => (b >= 1048576 ? `${(b / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(b / 1024))} KB`);
+
+// Currículum: sube un PDF y decide si el botón «Descargar CV» se muestra en la web. Los cambios se aplican al instante.
+function CvPanel() {
+  const [st, setSt] = useState(null);
+  const [msg, setMsg] = useState({ t: '', ok: false });
+  const [busy, setBusy] = useState(false);
+  const load = useCallback(() => api('/admin/cv', { auth: true }).then(setSt).catch((x) => setMsg({ t: x.message, ok: false })), []);
+  useEffect(() => { load(); }, [load]);
+
+  async function upload(e) {
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!/\.pdf$/i.test(file.name)) return setMsg({ t: 'Solo se aceptan archivos PDF', ok: false });
+    if (file.size > 10 * 1024 * 1024) return setMsg({ t: 'El PDF no puede pesar más de 10 MB', ok: false });
+    const form = new FormData(); form.append('file', file);
+    setBusy(true); setMsg({ t: '', ok: false });
+    try { await api('/admin/cv', { method: 'POST', auth: true, form }); await load(); setMsg({ t: 'CV guardado ✓', ok: true }); }
+    catch (x) { setMsg({ t: x.message, ok: false }); }
+    setBusy(false);
+  }
+  async function toggle(enabled) {
+    setMsg({ t: '', ok: false });
+    setSt((s) => ({ ...s, enabled })); // el interruptor responde al instante; si el servidor falla, vuelve atrás
+    try { await api('/admin/cv', { method: 'PUT', auth: true, body: { enabled } }); setMsg({ t: enabled ? 'Descarga activada ✓' : 'Descarga desactivada ✓', ok: true }); }
+    catch (x) { setMsg({ t: x.message, ok: false }); await load(); }
+  }
+  async function remove() {
+    if (!confirm('¿Eliminar el CV? El visitante dejará de poder descargarlo.')) return;
+    try { await api('/admin/cv', { method: 'DELETE', auth: true }); await load(); setMsg({ t: 'CV eliminado', ok: true }); }
+    catch (x) { setMsg({ t: x.message, ok: false }); }
+  }
+  async function view() {
+    try {
+      const r = await fetch('/api/admin/cv/file', { headers: { Authorization: `Bearer ${getToken()}` } });
+      if (!r.ok) throw new Error('No se pudo abrir el CV');
+      window.open(URL.createObjectURL(await r.blob()), '_blank', 'noopener');
+    } catch (x) { setMsg({ t: x.message, ok: false }); }
+  }
+
+  if (!st) return <div className="panel"><p className="muted">Cargando…</p></div>;
+  return (
+    <div className="panel">
+      <h4>Currículum (CV)</h4>
+      <p className="muted">Sube tu CV en PDF (máx. 10 MB). Mientras la descarga esté activada, la página muestra el botón «Descargar CV». Los cambios se aplican al instante, sin pulsar «Guardar perfil».</p>
+
+      <label className="check cv-switch">
+        <input type="checkbox" checked={st.enabled} disabled={!st.hasFile} onChange={(e) => toggle(e.target.checked)} />
+        <span>Mostrar el botón de descarga en la página {st.enabled ? <b className="ok">(activada)</b> : <b className="muted">(desactivada)</b>}</span>
+      </label>
+      {!st.hasFile && <p className="muted">Primero sube un CV para poder activar la descarga.</p>}
+
+      {st.hasFile && (
+        <div className="cv-file">
+          <div><b>{st.name || 'cv.pdf'}</b><br /><small className="muted">{fmtSize(st.size)} · subido el {new Date(st.updated).toLocaleString('es-HN')}</small></div>
+          <div className="actions">
+            <button type="button" onClick={view}>Ver</button>
+            <button type="button" className="danger" onClick={remove}>Eliminar</button>
+          </div>
+        </div>
+      )}
+
+      <label className="file">{st.hasFile ? 'Reemplazar CV' : 'Subir CV'} (PDF)
+        <input type="file" accept="application/pdf,.pdf" onChange={upload} disabled={busy} />
+      </label>
+      {busy && <p className="muted">Subiendo…</p>}
+      {msg.t && <p className={msg.ok ? 'ok' : 'err'}>{msg.t}</p>}
+    </div>
+  );
+}
+
 function Profile() {
   const [f, setF] = useState(null);
   const [exp, setExp] = useState([]);
@@ -319,7 +391,7 @@ function Profile() {
   return (
     <form className="form" onSubmit={save}>
       <div className="subtabs" role="tablist">
-        {[['photo', 'Foto'], ['contact', 'Contacto'], ['social', 'Redes sociales'], ['exp', 'Experiencia'], ['edu', 'Formación'], ['testi', 'Testimonios']].map(([k, l]) => (
+        {[['photo', 'Foto'], ['cv', 'Currículum (CV)'], ['contact', 'Contacto'], ['social', 'Redes sociales'], ['exp', 'Experiencia'], ['edu', 'Formación'], ['testi', 'Testimonios']].map(([k, l]) => (
           <button key={k} type="button" role="tab" aria-selected={tab === k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{l}</button>
         ))}
       </div>
@@ -330,6 +402,7 @@ function Profile() {
         {f.photo && <button type="button" className="danger" onClick={() => setF({ ...f, photo: '' })}>Quitar foto</button>}
         <p className="muted">Después de subirla pulsa «Guardar perfil».</p>
       </div>}
+      {tab === 'cv' && <CvPanel />}
       {tab === 'contact' && <div className="panel">
         <h4>Contacto</h4>
         {CONTACT_FIELDS.map(([k, l, ph]) => <label key={k} className="file">{l}<input value={f[k] || ''} placeholder={ph} onChange={set(k)} /></label>)}
@@ -383,7 +456,7 @@ function Profile() {
         ))}
         <button type="button" className="btn ghost" onClick={() => setTesti([...testi, { name: '', role: '', text_es: '', text_en: '' }])}>+ Agregar testimonio</button>
       </div>}
-      <div><button className="btn primary">Guardar perfil</button></div>
+      {tab !== 'cv' && <div><button className="btn primary">Guardar perfil</button></div>}
       {m.t && <p className={m.ok ? 'ok' : 'err'}>{m.t}</p>}
     </form>
   );
