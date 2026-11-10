@@ -9,6 +9,8 @@ import { pool, UPLOAD_DIR, PRIVATE_DIR } from '../db.js';
 import { requireAdmin, signToken } from '../auth.js';
 import { getCv, setSetting, removeCvFile } from '../cv.js';
 import { looksLikePdf, cleanOriginalName } from '../cvName.js';
+import { sendMail, getNotify, saveNotify, mailConfigured, clientsEnabled, mailFrom, notifyClient, getOwnerName } from '../mail.js';
+import { contactMail, clientMeetingMail } from '../mailTemplates.js';
 
 const r = Router();
 const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, standardHeaders: true, legacyHeaders: false });
@@ -188,9 +190,45 @@ r.get('/meetings', async (_q, res) => {
 r.patch('/meetings/:id', async (req, res) => {
   const { status } = req.body;
   if (!['pending', 'confirmed', 'cancelled'].includes(status)) return res.status(400).json({ error: 'Estado inválido' });
+  const [[before]] = await pool.query('SELECT status FROM meetings WHERE id=?', [req.params.id]);
   // al cancelar se libera el horario (slot_key = NULL)
-  await pool.query(`UPDATE meetings SET status=?, slot_key=IF(?='cancelled', NULL, start_at) WHERE id=?`, [status, status, req.params.id]);
+  try {
+    await pool.query(`UPDATE meetings SET status=?, slot_key=IF(?='cancelled', NULL, start_at) WHERE id=?`, [status, status, req.params.id]);
+  } catch (e) {
+    // reactivar una reunión cancelada cuyo horario ya fue reservado por otra persona
+    if (e.code === 'ER_DUP_ENTRY') return res.status(409).json({ error: 'Ese horario ya fue reservado por otra reunión' });
+    throw e;
+  }
+  // Si los correos a visitantes están habilitados, se les informa de la confirmación o cancelación (solo si el estado cambió)
+  if (before && before.status !== status && (status === 'confirmed' || status === 'cancelled')) {
+    const [[m]] = await pool.query('SELECT name, email, start_at FROM meetings WHERE id=?', [req.params.id]);
+    if (m) {
+      const [date, time] = String(m.start_at).split(' ');
+      getOwnerName().then((owner) => notifyClient(m.email, clientMeetingMail(status, { name: m.name, date, time: (time || '').slice(0, 5) }, owner))).catch(() => {});
+    }
+  }
   res.json({ ok: true });
+});
+
+// ---- Avisos por correo: activar/desactivar, correo de destino y envío de prueba ----
+r.get('/notify', async (_q, res) => {
+  const n = await getNotify();
+  res.json({ configured: mailConfigured(), clients: clientsEnabled(), enabled: n.enabled, email: n.custom, effective: n.to, from: mailFrom() });
+});
+r.put('/notify', async (req, res) => {
+  try {
+    await saveNotify({ enabled: req.body?.enabled === true, email: String(req.body?.email || '').trim().slice(0, 160) });
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(e.status || 500).json({ error: e.message });
+  }
+});
+r.post('/notify/test', async (_q, res) => {
+  const n = await getNotify();
+  if (!n.to) return res.status(400).json({ error: 'Escribe un correo de destino (o carga tu correo en Perfil y contacto)' });
+  const r2 = await sendMail({ to: n.to, ...contactMail({ name: 'Prueba del sistema', email: n.to, subject: 'Correo de prueba', message: 'Si ves este mensaje, los avisos por correo funcionan.' }) });
+  if (!r2.ok) return res.status(502).json({ error: r2.error });
+  res.json({ ok: true, to: n.to });
 });
 
 r.get('/availability', async (_q, res) => {

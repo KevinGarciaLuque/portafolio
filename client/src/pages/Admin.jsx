@@ -3,7 +3,7 @@ import { api, getToken, setToken } from '../api.js';
 
 const TABS = [
   ['dash', 'Resumen'], ['systems', 'Sistemas'], ['messages', 'Mensajes'],
-  ['meetings', 'Reuniones'], ['avail', 'Disponibilidad'], ['profile', 'Perfil y contacto'], ['account', 'Cuenta'],
+  ['meetings', 'Reuniones'], ['avail', 'Disponibilidad'], ['profile', 'Perfil y contacto'], ['notify', 'Avisos por correo'], ['account', 'Cuenta'],
 ];
 const DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
@@ -462,6 +462,55 @@ function Profile() {
   );
 }
 
+// Avisos por correo: te llega un email cuando alguien te escribe o agenda una reunión
+function Notify() {
+  const [n, setN] = useState(null);
+  const [form, setForm] = useState({ enabled: true, email: '' });
+  const [msg, setMsg] = useState({ t: '', ok: false });
+  const [busy, setBusy] = useState(false);
+  const load = useCallback(() => api('/admin/notify', { auth: true }).then((d) => { setN(d); setForm({ enabled: d.enabled, email: d.email }); }), []);
+  useEffect(() => { load().catch((x) => setMsg({ t: x.message, ok: false })); }, [load]);
+
+  async function save(e) {
+    e.preventDefault(); setBusy(true); setMsg({ t: '', ok: false });
+    try { await api('/admin/notify', { method: 'PUT', auth: true, body: form }); await load(); setMsg({ t: 'Guardado ✓', ok: true }); }
+    catch (x) { setMsg({ t: x.message, ok: false }); }
+    setBusy(false);
+  }
+  async function test() {
+    setBusy(true); setMsg({ t: '', ok: false });
+    try { const r = await api('/admin/notify/test', { method: 'POST', auth: true }); setMsg({ t: `Correo de prueba enviado a ${r.to} ✓ (revisa también spam)`, ok: true }); }
+    catch (x) { setMsg({ t: `No se pudo enviar: ${x.message}`, ok: false }); }
+    setBusy(false);
+  }
+
+  if (!n) return <p className="muted">{msg.t || 'Cargando…'}</p>;
+  return (
+    <form className="form panel" onSubmit={save}>
+      <h4>Avisos por correo</h4>
+      <p className="muted">Recibe un correo cuando alguien te escribe en «Cuéntame tu proyecto» o solicita una reunión. Puedes responder directo a ese correo y le llega al visitante.</p>
+
+      <div className="notify-status">
+        <p>{n.configured ? <span className="ok">● Servicio de correo conectado</span> : <span className="err">● Servicio de correo no configurado</span>}</p>
+        {!n.configured && <p className="muted">Falta la variable <code>RESEND_API_KEY</code> en Railway (cuenta gratuita en resend.com). Hasta entonces no se envía nada, pero todo sigue llegando al panel.</p>}
+        <p className="muted">Remitente: <code>{n.from}</code> · Correos a visitantes: {n.clients ? <b className="ok">activados</b> : 'desactivados'}</p>
+      </div>
+
+      <label className="check"><input type="checkbox" checked={form.enabled} onChange={(e) => setForm({ ...form, enabled: e.target.checked })} /> Avisarme por correo</label>
+      <label className="file">Correo de destino
+        <input type="email" value={form.email} placeholder={n.effective || 'tucorreo@dominio.com'} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+        <small className="muted">Si lo dejas vacío se usa el correo de «Perfil y contacto»{n.effective ? ` (${n.effective})` : ''}.</small>
+      </label>
+      <div className="actions">
+        <button className="btn primary" disabled={busy}>Guardar</button>
+        <button type="button" className="btn ghost" disabled={busy || !n.configured} onClick={test}>Enviar correo de prueba</button>
+      </div>
+      <p className="muted">Pulsa «Guardar» antes de probar: la prueba usa el correo guardado.</p>
+      {msg.t && <p className={msg.ok ? 'ok' : 'err'}>{msg.t}</p>}
+    </form>
+  );
+}
+
 function Account() {
   const [f, setF] = useState({ current: '', next: '' });
   const [m, setM] = useState({ t: '', ok: false });
@@ -566,7 +615,7 @@ export default function Admin() {
   const [logged, setLogged] = useState(!!getToken());
   const [tab, setTab] = useState('dash');
   if (!logged) return <Login onOk={() => setLogged(true)} />;
-  const View = { dash: Dash, systems: Systems, messages: Messages, meetings: Meetings, avail: Availability, profile: Profile, account: Account }[tab];
+  const View = { dash: Dash, systems: Systems, messages: Messages, meetings: Meetings, avail: Availability, profile: Profile, notify: Notify, account: Account }[tab];
   return (
     <div className="admin">
       <aside>

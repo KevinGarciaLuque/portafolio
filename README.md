@@ -38,6 +38,17 @@ Express sirve la API y la web compilada (`client/dist`).
 4. **Volumen:** crea un volumen montado en `/data` para que las imágenes y videos subidos desde el panel no se pierdan en cada despliegue.
 5. **Dominio:** *Settings → Networking → Generate Domain*. Después cambia la clave del admin desde `/admin` → Cuenta.
 
+## Avisos por correo (opcional)
+Cuando alguien escribe o agenda, llega un correo. Se envía con la API HTTP de [Resend](https://resend.com) (en Railway el SMTP está bloqueado en los planes básicos). Variables del servicio:
+
+| Variable | Para qué |
+|---|---|
+| `RESEND_API_KEY` | Clave de Resend. Sin ella no se envía nada (todo sigue llegando al panel). |
+| `MAIL_FROM` | Remitente, p. ej. `Kevin <hola@tudominio.com>`. Por defecto `onboarding@resend.dev`, que **solo puede enviar al correo con el que creaste la cuenta de Resend**. |
+| `MAIL_CLIENTS` | `true` para enviar confirmaciones a los visitantes (recibida / confirmada / cancelada). Requiere un dominio verificado en Resend. |
+
+El destino, el interruptor y el envío de prueba se manejan en `/admin` → **Avisos por correo**.
+
 ## Escenas cinematográficas
 Los fotogramas están en `client/public/sequences/<escena>/`. Para regenerarlos desde un clip:
 ```bash

@@ -5,6 +5,10 @@ import { buildSlots } from '../slots.js';
 import { cleanPath, refHost, isBot } from '../analytics.js';
 import { getCv } from '../cv.js';
 import { cvDownloadName } from '../cvName.js';
+import { notifyOwner, notifyClient, getOwnerName } from '../mail.js';
+import { contactMail, meetingMail, clientMeetingMail } from '../mailTemplates.js';
+
+const adminUrl = (req) => `${req.protocol}://${req.get('host')}/admin`;
 
 const r = Router();
 const trackLimiter = rateLimit({ windowMs: 60 * 1000, limit: 60, standardHeaders: true, legacyHeaders: false });
@@ -24,8 +28,8 @@ r.get('/systems/:id', async (req, res) => {
 
 r.get('/profile', async (_req, res) => {
   const [rows] = await pool.query('SELECT k, v FROM settings');
-  // Los ajustes internos del CV (cv_*) no se publican: solo se indica si hay uno disponible
-  const out = Object.fromEntries(rows.filter((x) => !x.k.startsWith('cv_')).map((x) => [x.k, x.v]));
+  // Los ajustes internos (cv_*, notify_*) no se publican: solo se indica si hay uno disponible
+  const out = Object.fromEntries(rows.filter((x) => !/^(cv|notify)_/.test(x.k)).map((x) => [x.k, x.v]));
   const cv = await getCv();
   out.cv_available = cv.enabled && cv.exists ? 'true' : 'false';
   res.json(out);
@@ -48,8 +52,9 @@ r.post('/contact', limiter, async (req, res) => {
   if (website) return res.json({ ok: true }); // honeypot anti-bots
   if (!name?.trim() || !emailRe.test(email || '') || !message?.trim())
     return res.status(400).json({ error: 'Datos inválidos' });
-  await pool.query('INSERT INTO messages (name,email,subject,message) VALUES (?,?,?,?)',
-    [name.trim().slice(0, 120), email.trim().slice(0, 160), String(subject).slice(0, 200), message.trim().slice(0, 5000)]);
+  const clean = { name: name.trim().slice(0, 120), email: email.trim().slice(0, 160), subject: String(subject).slice(0, 200), message: message.trim().slice(0, 5000) };
+  await pool.query('INSERT INTO messages (name,email,subject,message) VALUES (?,?,?,?)', [clean.name, clean.email, clean.subject, clean.message]);
+  notifyOwner(contactMail(clean, adminUrl(req))); // en segundo plano: un fallo de correo nunca afecta al visitante
   res.json({ ok: true });
 });
 
@@ -88,14 +93,17 @@ r.post('/meetings', limiter, async (req, res) => {
     return res.status(400).json({ error: 'Datos inválidos' });
   if (!(await freeSlots(date)).includes(time)) return res.status(409).json({ error: 'Horario no disponible' });
   const start = `${date} ${time}:00`;
+  const clean = { name: name.trim().slice(0, 120), email: email.trim().slice(0, 160), phone: String(phone).slice(0, 40), topic: String(topic).slice(0, 3000), date, time };
   try {
     await pool.query(
       'INSERT INTO meetings (name,email,phone,topic,start_at,slot_key) VALUES (?,?,?,?,?,?)',
-      [name.trim().slice(0, 120), email.trim().slice(0, 160), String(phone).slice(0, 40), String(topic).slice(0, 3000), start, start]);
+      [clean.name, clean.email, clean.phone, clean.topic, start, start]);
   } catch (e) {
     if (e.code === 'ER_DUP_ENTRY') return res.status(409).json({ error: 'Horario no disponible' });
     throw e;
   }
+  notifyOwner(meetingMail(clean, adminUrl(req)));
+  getOwnerName().then((owner) => notifyClient(clean.email, clientMeetingMail('received', clean, owner))).catch(() => {});
   res.json({ ok: true });
 });
 
