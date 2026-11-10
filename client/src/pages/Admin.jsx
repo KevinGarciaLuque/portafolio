@@ -210,27 +210,45 @@ const EXP_EMPTY = { role_es: '', role_en: '', company: '', period: '', desc_es: 
 function Profile() {
   const [f, setF] = useState(null);
   const [exp, setExp] = useState([]);
+  const [edu, setEdu] = useState([]);
   const [m, setM] = useState({ t: '', ok: false });
   useEffect(() => {
     api('/admin/settings', { auth: true }).then((d) => {
       setF(d);
       try { setExp(JSON.parse(d.experience || '[]')); } catch { setExp([]); }
+      try { setEdu(JSON.parse(d.education || '[]')); } catch { setEdu([]); }
     });
   }, []);
   if (!f) return <p className="muted">Cargando…</p>;
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
   const updExp = (i, k, v) => setExp(exp.map((x, j) => (j === i ? { ...x, [k]: v } : x)));
   const move = (i, d) => { const a = [...exp]; const j = i + d; if (j < 0 || j >= a.length) return; [a[i], a[j]] = [a[j], a[i]]; setExp(a); };
+  const updEdu = (i, k, v) => setEdu(edu.map((x, j) => (j === i ? { ...x, [k]: v } : x)));
+  const moveEdu = (i, d) => { const a = [...edu]; const j = i + d; if (j < 0 || j >= a.length) return; [a[i], a[j]] = [a[j], a[i]]; setEdu(a); };
 
+  async function upPhoto(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const form = new FormData(); form.append('file', file);
+    try { const r = await api('/admin/upload', { method: 'POST', auth: true, form }); setF((p) => ({ ...p, photo: r.url })); setM({ t: '', ok: false }); }
+    catch (x) { setM({ t: x.message, ok: false }); }
+  }
   async function save(e) {
     e.preventDefault();
     try {
-      await api('/admin/settings', { method: 'PUT', auth: true, body: { ...f, experience: JSON.stringify(exp) } });
+      await api('/admin/settings', { method: 'PUT', auth: true, body: { ...f, experience: JSON.stringify(exp), education: JSON.stringify(edu) } });
       setM({ t: 'Guardado ✓ (recarga la página pública para verlo)', ok: true });
     } catch (x) { setM({ t: x.message, ok: false }); }
   }
   return (
     <form className="form" onSubmit={save}>
+      <div className="panel">
+        <h4>Foto de perfil</h4>
+        {f.photo && <img src={f.photo} alt="" style={{ width: 120, height: 120, borderRadius: '50%', objectFit: 'cover', display: 'block', marginBottom: 12 }} />}
+        <label className="file">Subir foto<input type="file" accept="image/*" onChange={upPhoto} /><small>{f.photo}</small></label>
+        {f.photo && <button type="button" className="danger" onClick={() => setF({ ...f, photo: '' })}>Quitar foto</button>}
+        <p className="muted">Después de subirla pulsa «Guardar perfil».</p>
+      </div>
       <div className="panel">
         <h4>Contacto</h4>
         {CONTACT_FIELDS.map(([k, l, ph]) => <label key={k} className="file">{l}<input value={f[k] || ''} placeholder={ph} onChange={set(k)} /></label>)}
@@ -254,6 +272,20 @@ function Profile() {
           </div>
         ))}
         <button type="button" className="btn ghost" onClick={() => setExp([...exp, { ...EXP_EMPTY }])}>+ Agregar experiencia</button>
+      </div>
+      <div className="panel">
+        <h4>Formación y certificaciones</h4>
+        {edu.map((x, i) => (
+          <div key={i} className="panel exp-edit">
+            <div className="row"><input placeholder="Título (ES)" value={x.title_es} onChange={(e) => updEdu(i, 'title_es', e.target.value)} /><input placeholder="Title (EN)" value={x.title_en} onChange={(e) => updEdu(i, 'title_en', e.target.value)} /></div>
+            <div className="row"><input placeholder="Institución" value={x.org} onChange={(e) => updEdu(i, 'org', e.target.value)} /><input placeholder="Año (2024)" value={x.year} onChange={(e) => updEdu(i, 'year', e.target.value)} /></div>
+            <div className="actions">
+              <button type="button" onClick={() => moveEdu(i, -1)}>↑</button><button type="button" onClick={() => moveEdu(i, 1)}>↓</button>
+              <button type="button" className="danger" onClick={() => setEdu(edu.filter((_, j) => j !== i))}>Eliminar</button>
+            </div>
+          </div>
+        ))}
+        <button type="button" className="btn ghost" onClick={() => setEdu([...edu, { title_es: '', title_en: '', org: '', year: '' }])}>+ Agregar formación</button>
       </div>
       <div><button className="btn primary">Guardar perfil</button></div>
       {m.t && <p className={m.ok ? 'ok' : 'err'}>{m.t}</p>}

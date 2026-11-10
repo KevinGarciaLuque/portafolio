@@ -7,6 +7,7 @@ import About from '../components/About.jsx';
 import Booking from '../components/Booking.jsx';
 import Contact from '../components/Contact.jsx';
 import Experience from '../components/Experience.jsx';
+import Education from '../components/Education.jsx';
 import SceneSection from '../components/SceneSection.jsx';
 import SocialLinks, { WhatsAppFloat } from '../components/SocialLinks.jsx';
 import { ScrollTrigger, refreshScroll } from '../lib/motion.js';
@@ -43,6 +44,7 @@ export default function Home() {
           <button onClick={() => go('catalog')}>{t.nav.catalog}</button>
           <button onClick={() => go('about')}>{t.nav.about}</button>
           <button onClick={() => go('experience')}>{t.nav.experience}</button>
+          <button onClick={() => go('education')}>{t.nav.education}</button>
           <button onClick={() => go('book')}>{t.nav.book}</button>
           <button onClick={() => go('contact')}>{t.nav.contact}</button>
           <button className="lang" onClick={() => setLang(lang === 'es' ? 'en' : 'es')}>{lang === 'es' ? 'EN' : 'ES'}</button>
@@ -53,6 +55,7 @@ export default function Home() {
         <SceneSection variant="wipe" backdrop="projects" hue={205}><Catalog /></SceneSection>
         <SceneSection variant="curtain" backdrop="about" hue={195}><About /></SceneSection>
         <SceneSection variant="rise" backdrop="experience" hue={215}><Experience /></SceneSection>
+        <SceneSection variant="curtain"><Education /></SceneSection>
         <SceneSection variant="zoom"><Booking /></SceneSection>
         <SceneSection variant="zoom" backdrop="contact" hue={185}><Contact /></SceneSection>
       </main>

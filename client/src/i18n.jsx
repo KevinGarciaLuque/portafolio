@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 
 const dict = {
   es: {
-    nav: { catalog: 'Catálogo', about: 'Sobre mí', experience: 'Experiencia', book: 'Agendar', contact: 'Contacto' },
+    nav: { catalog: 'Catálogo', about: 'Sobre mí', experience: 'Experiencia', education: 'Formación', book: 'Agendar', contact: 'Contacto' },
     hero: {
       kicker: 'Presenta',
       title1: 'SISTEMAS',
@@ -30,11 +30,23 @@ const dict = {
       empty: 'Aún no hay sistemas publicados.',
     },
     experience: { kicker: 'La trayectoria', title: 'EXPERIENCIA', empty: 'Pronto agregaré mi experiencia.' },
+    education: { kicker: 'Aprendizaje continuo', title: 'FORMACIÓN', empty: 'Pronto agregaré mi formación.' },
     about: {
       kicker: 'Detrás de cámaras',
       title: 'SOBRE MÍ',
-      text: 'Diseño y desarrollo sistemas completos: base de datos, servidor e interfaz. Me enfoco en soluciones claras, rápidas y seguras que resuelven problemas reales de negocio.',
       stack: 'Tecnologías',
+      dev: {
+        role: 'Desarrollador Web Full Stack',
+        text: 'Con experiencia en Frontend, Backend y bases de datos. Especializado en crear sistemas modernos, funcionales y escalables, integrando interfaces atractivas, APIs y gestión eficiente de datos.',
+        label: 'Tecnologías',
+        tags: ['React', 'Vite', 'JavaScript', 'JSX', 'HTML', 'CSS', 'Bootstrap', 'Material UI', 'Node.js', 'Express', 'MySQL', 'SQL Server', 'Axios', 'Git', 'GitHub', 'Railway', 'Hostinger', 'jsPDF', 'jspdf-autotable', 'bwip-js', 'Códigos QR y de barras'],
+      },
+      qa: {
+        role: 'Quality Assurance Engineer Senior (QA)',
+        text: 'Con experiencia en pruebas manuales, automatizadas, funcionales, de integración y regresión. Enfocado en garantizar la calidad y estabilidad de los sistemas mediante análisis de requerimientos, detección de errores, creación de casos de prueba y documentación de resultados.',
+        label: 'Herramientas',
+        tags: ['Selenium', 'Java', 'Jira', 'Postman', 'Git', 'GitHub', 'Chrome DevTools', 'Excel', 'Google Sheets', 'Pruebas API REST', 'Matrices de prueba', 'Reportes de bugs', 'Metodologías ágiles Scrum'],
+      },
     },
     book: {
       kicker: 'Reserva tu función',
@@ -74,7 +86,7 @@ const dict = {
     footer: 'Todos los derechos reservados.',
   },
   en: {
-    nav: { catalog: 'Catalog', about: 'About', experience: 'Experience', book: 'Book', contact: 'Contact' },
+    nav: { catalog: 'Catalog', about: 'About', experience: 'Experience', education: 'Education', book: 'Book', contact: 'Contact' },
     hero: {
       kicker: 'Presents',
       title1: 'SYSTEMS',
@@ -102,11 +114,23 @@ const dict = {
       empty: 'No systems published yet.',
     },
     experience: { kicker: 'The journey', title: 'EXPERIENCE', empty: 'My experience will be added soon.' },
+    education: { kicker: 'Always learning', title: 'EDUCATION', empty: 'My education will be added soon.' },
     about: {
       kicker: 'Behind the scenes',
       title: 'ABOUT ME',
-      text: 'I design and build complete systems: database, server and interface. I focus on clear, fast and secure solutions that solve real business problems.',
       stack: 'Tech stack',
+      dev: {
+        role: 'Full Stack Web Developer',
+        text: 'Experienced in Frontend, Backend and databases. Specialized in building modern, functional and scalable systems, integrating attractive interfaces, APIs and efficient data management.',
+        label: 'Tech stack',
+        tags: ['React', 'Vite', 'JavaScript', 'JSX', 'HTML', 'CSS', 'Bootstrap', 'Material UI', 'Node.js', 'Express', 'MySQL', 'SQL Server', 'Axios', 'Git', 'GitHub', 'Railway', 'Hostinger', 'jsPDF', 'jspdf-autotable', 'bwip-js', 'QR and barcodes'],
+      },
+      qa: {
+        role: 'Senior Quality Assurance Engineer (QA)',
+        text: 'Experienced in manual, automated, functional, integration and regression testing. Focused on ensuring system quality and stability through requirements analysis, defect detection, test case design and results documentation.',
+        label: 'Tools',
+        tags: ['Selenium', 'Java', 'Jira', 'Postman', 'Git', 'GitHub', 'Chrome DevTools', 'Excel', 'Google Sheets', 'REST API testing', 'Test matrices', 'Bug reports', 'Agile Scrum methodologies'],
+      },
     },
     book: {
       kicker: 'Reserve your screening',

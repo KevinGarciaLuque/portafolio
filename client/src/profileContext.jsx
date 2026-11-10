@@ -5,7 +5,7 @@ import { refreshScroll } from './lib/motion.js';
 
 const Ctx = createContext(null);
 
-const parseExperience = (raw) => {
+const parseList = (raw) => {
   try { const a = JSON.parse(raw || '[]'); return Array.isArray(a) ? a : []; } catch { return []; }
 };
 
@@ -22,8 +22,10 @@ export function ProfileProvider({ children }) {
     phone: data.phone || '',
     whatsapp: data.whatsapp || '',
     location: data.location || '',
+    photo: data.photo || '',
     social: Object.fromEntries(['linkedin', 'github', 'facebook', 'instagram', 'tiktok', 'youtube', 'x'].map((k) => [k, data[k] || ''])),
-    experience: parseExperience(data.experience),
+    experience: parseList(data.experience),
+    education: parseList(data.education),
   };
   return <Ctx.Provider value={{ profile }}>{children}</Ctx.Provider>;
 }

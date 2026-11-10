@@ -183,6 +183,18 @@ const defaults = {
   email: 'kevinxgt90@gmail.com',
   phone: '', whatsapp: '', location: '',
   linkedin: '', github: '', facebook: '', instagram: '', tiktok: '', youtube: '', x: '',
+  // Formación y certificaciones (INSERT IGNORE: solo se crea si no existe; lo que edites en el panel se respeta)
+  education: JSON.stringify([
+    { title_es: 'Certificación: Desarrollador FullStack', title_en: 'Certification: FullStack Developer', org: 'UTH', year: '2024' },
+    { title_es: 'Curso: Básico de JavaScript', title_en: 'Course: JavaScript Basics', org: 'UNAH', year: '2025' },
+    { title_es: 'Curso: Base de Datos MySQL', title_en: 'Course: MySQL Databases', org: 'INFOP', year: '2024' },
+    { title_es: 'Curso: Nivel Básico de Inglés', title_en: 'Course: Basic English', org: 'Fuerzas Armadas de Honduras', year: '2024' },
+    { title_es: 'Curso: Brigadistas del Hospital María Especialidades Pediátricas', title_en: 'Course: Brigade Member, Hospital María Pediatric Specialties', org: 'Cruz Roja Hondureña', year: '2024' },
+    { title_es: 'Curso CCNA2: Switching, Routing and Wireless Essentials', title_en: 'Course CCNA2: Switching, Routing and Wireless Essentials', org: 'UTH', year: '2024' },
+    { title_es: 'Curso CCNA1: Introducción a las Redes', title_en: 'Course CCNA1: Introduction to Networks', org: 'UTH', year: '2023' },
+    { title_es: 'Curso: Relaciones Interpersonales', title_en: 'Course: Interpersonal Relationships', org: 'INFOP', year: '2017' },
+    { title_es: 'Curso: Operador de Paquetes bajo Windows (Word, Excel, PowerPoint, Publisher)', title_en: 'Course: Windows Office Suite Operator (Word, Excel, PowerPoint, Publisher)', org: 'INFOP', year: '2008' },
+  ]),
   experience: JSON.stringify([
     { role_es: 'Desarrollador Full-Stack', role_en: 'Full-Stack Developer', company: 'Tu empresa / Freelance', period: '2022 — Actual',
       desc_es: 'Edita este puesto desde el panel administrativo.', desc_en: 'Edit this position from the admin panel.' },
