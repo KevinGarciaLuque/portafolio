@@ -32,8 +32,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .nav.scrolled { background: rgba(4, 7, 13, 0.82); backdrop-filter: blur(14px); padding-block: 12px; border-bottom: 1px solid var(--line); }
 .logo { font-family: var(--display); font-size: 28px; letter-spacing: 4px; color: var(--text); } .logo i { color: var(--cyan); font-style: normal; text-shadow: var(--glow); }
 .nav-links { display: flex; gap: 6px; align-items: center; }
-.nav-links button { background: none; border: 0; padding: 8px 14px; color: var(--muted); font-size: 14px; letter-spacing: .5px; transition: color .25s; }
-.nav-links button:hover { color: var(--cyan); }
+.nav-links button, .nav-links a { background: none; border: 0; padding: 8px 14px; color: var(--muted); font-size: 14px; letter-spacing: .5px; transition: color .25s; text-decoration: none; }
+.nav-links button:hover, .nav-links a:hover { color: var(--cyan); }
 .nav-links .lang { border: 1px solid var(--line); border-radius: 6px; color: var(--cyan); font-weight: 600; }
 
 /* ---------- Hero ---------- */
@@ -133,7 +133,7 @@ input[type=checkbox] { width: auto; }
 .hp { position: absolute !important; left: -9999px; }
 .ok { color: #4dffb0; } .err { color: #ff6b81; }
 .booking { display: grid; grid-template-columns: minmax(300px, 1fr) minmax(300px, 1fr); gap: 32px; align-items: start; }
-@media (max-width: 800px) { .booking { grid-template-columns: 1fr; } .nav-links button:not(.lang) { display: none; } }
+@media (max-width: 800px) { .booking { grid-template-columns: 1fr; } .nav-links button:not(.lang), .nav-links a { display: none; } }
 .cal, .slots-panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 24px; backdrop-filter: blur(8px); }
 .cal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; text-transform: capitalize; }
 .icon-btn { background: none; border: 1px solid var(--line); width: 36px; height: 36px; border-radius: 50%; font-size: 20px; } .icon-btn:hover:not(:disabled) { border-color: var(--cyan); color: var(--cyan); } .icon-btn:disabled { opacity: .3; }

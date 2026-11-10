@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useLang } from '../i18n.jsx';
 import { useProfile } from '../profileContext.jsx';
 import Hero from '../components/Hero.jsx';
 import Catalog from '../components/Catalog.jsx';
-import About from '../components/About.jsx';
 import Booking from '../components/Booking.jsx';
 import Contact from '../components/Contact.jsx';
-import Experience from '../components/Experience.jsx';
-import Education from '../components/Education.jsx';
 import SceneSection from '../components/SceneSection.jsx';
 import SocialLinks, { WhatsAppFloat } from '../components/SocialLinks.jsx';
 import { ScrollTrigger, refreshScroll } from '../lib/motion.js';
@@ -32,6 +30,14 @@ export default function Home() {
     return () => { ro.disconnect(); window.removeEventListener('load', onLoad); };
   }, []);
 
+  // Si se llega con un ancla (/#book desde otra página), baja a esa sección cuando la página ya cargó
+  useEffect(() => {
+    const id = window.location.hash.slice(1);
+    if (!id) return;
+    const tm = setTimeout(() => document.getElementById(id)?.scrollIntoView(), 600);
+    return () => clearTimeout(tm);
+  }, []);
+
   const go = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
 
   return (
@@ -42,9 +48,7 @@ export default function Home() {
         <a className="logo" href="#top" onClick={(e) => { e.preventDefault(); go('top'); }}>{profile.name.split(' ')[0].toUpperCase()}<i>.</i></a>
         <div className="nav-links">
           <button onClick={() => go('catalog')}>{t.nav.catalog}</button>
-          <button onClick={() => go('about')}>{t.nav.about}</button>
-          <button onClick={() => go('experience')}>{t.nav.experience}</button>
-          <button onClick={() => go('education')}>{t.nav.education}</button>
+          <Link to="/sobre-mi">{t.nav.about}</Link>
           <button onClick={() => go('book')}>{t.nav.book}</button>
           <button onClick={() => go('contact')}>{t.nav.contact}</button>
           <button className="lang" onClick={() => setLang(lang === 'es' ? 'en' : 'es')}>{lang === 'es' ? 'EN' : 'ES'}</button>
@@ -53,9 +57,6 @@ export default function Home() {
       <main>
         <Hero />
         <SceneSection variant="wipe" backdrop="projects" hue={205}><Catalog /></SceneSection>
-        <SceneSection variant="curtain" backdrop="about" hue={195}><About /></SceneSection>
-        <SceneSection variant="rise" backdrop="experience" hue={215}><Experience /></SceneSection>
-        <SceneSection variant="curtain"><Education /></SceneSection>
         <SceneSection variant="zoom"><Booking /></SceneSection>
         <SceneSection variant="zoom" backdrop="contact" hue={185}><Contact /></SceneSection>
       </main>

@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 
 const dict = {
   es: {
-    nav: { catalog: 'Catálogo', about: 'Sobre mí', experience: 'Experiencia', education: 'Formación', book: 'Agendar', contact: 'Contacto' },
+    nav: { home: 'Inicio', catalog: 'Catálogo', about: 'Sobre mí', experience: 'Experiencia', education: 'Formación', book: 'Agendar', contact: 'Contacto' },
     hero: {
       kicker: 'Presenta',
       title1: 'SISTEMAS',
@@ -86,7 +86,7 @@ const dict = {
     footer: 'Todos los derechos reservados.',
   },
   en: {
-    nav: { catalog: 'Catalog', about: 'About', experience: 'Experience', education: 'Education', book: 'Book', contact: 'Contact' },
+    nav: { home: 'Home', catalog: 'Catalog', about: 'About', experience: 'Experience', education: 'Education', book: 'Book', contact: 'Contact' },
     hero: {
       kicker: 'Presents',
       title1: 'SYSTEMS',
