@@ -145,6 +145,39 @@ if (firstRun && !sys.length) {
   console.log('10 sistemas de ejemplo creados');
 }
 
+// Proyectos reales publicados. Se insertan UNA sola vez (marca en settings) y se omiten los que ya existan por URL,
+// así lo que edites o borres luego desde el panel no se vuelve a crear.
+const [[seeded]] = await conn.query("SELECT COUNT(*) n FROM settings WHERE k = 'seed_live_links_v1'");
+if (!seeded.n) {
+  const live = [
+    ['MedickG', 'MedickG', 'Gestión médica en línea', 'Online medical management', 'https://medickg.com/'],
+    ['Equipo', 'Equipo', 'Control y gestión de equipos', 'Team and equipment management', 'https://equipo.up.railway.app/'],
+    ['SmartCoop', 'SmartCoop', 'Plataforma para cooperativas', 'Platform for cooperatives', 'https://smartcoop.up.railway.app/'],
+    ['KG Studio', 'KG Studio', 'Estudio de desarrollo y diseño', 'Development and design studio', 'https://kg-studio.vercel.app/'],
+    ['Coffee', 'Coffee', 'Experiencia digital para cafeterías', 'Digital experience for coffee shops', 'https://coffee1.up.railway.app/'],
+    ['Ktrachogo', 'Ktrachogo', 'Sitio web comercial', 'Business website', 'https://ktrachogo.com/'],
+    ['El Piquete', 'El Piquete', 'Sitio web para restaurante', 'Restaurant website', 'https://el-piquete.vercel.app/'],
+    ['Tiendas Lauren', 'Tiendas Lauren', 'Tienda en línea', 'Online store', 'https://tiendaslauren.com/'],
+  ];
+  let order = -live.length;
+  for (const [te, ten, ge, gen, url] of live) {
+    const [dup] = await conn.query('SELECT id FROM systems WHERE url = ? LIMIT 1', [url]);
+    if (!dup.length) {
+      await conn.query(
+        `INSERT INTO systems (title_es,title_en,tagline_es,tagline_en,desc_es,desc_en,url,tags,sort_order)
+         VALUES (?,?,?,?,?,?,?,?,?)`,
+        [te, ten, ge, gen,
+          'Descripción del proyecto. Edítala desde el panel administrativo.',
+          'Project description. Edit it from the admin panel.',
+          url, 'React,Node.js,MySQL', order]
+      );
+    }
+    order++;
+  }
+  await conn.query("INSERT INTO settings (k, v) VALUES ('seed_live_links_v1', '1')");
+  console.log('Enlaces de proyectos publicados agregados al catálogo');
+}
+
 const defaults = {
   name: 'Kevin García',
   email: 'kevinxgt90@gmail.com',
