@@ -30,6 +30,7 @@ const dict = {
       empty: 'Aún no hay sistemas publicados.',
     },
     experience: { kicker: 'La trayectoria', title: 'EXPERIENCIA', empty: 'Pronto agregaré mi experiencia.' },
+    notFound: { title: 'PÁGINA NO ENCONTRADA', text: 'La página que buscas no existe o fue movida.', back: 'Volver al inicio' },
     education: { kicker: 'Aprendizaje continuo', title: 'FORMACIÓN', empty: 'Pronto agregaré mi formación.' },
     about: {
       kicker: 'Detrás de cámaras',
@@ -114,6 +115,7 @@ const dict = {
       empty: 'No systems published yet.',
     },
     experience: { kicker: 'The journey', title: 'EXPERIENCE', empty: 'My experience will be added soon.' },
+    notFound: { title: 'PAGE NOT FOUND', text: 'The page you are looking for does not exist or was moved.', back: 'Back to home' },
     education: { kicker: 'Always learning', title: 'EDUCATION', empty: 'My education will be added soon.' },
     about: {
       kicker: 'Behind the scenes',

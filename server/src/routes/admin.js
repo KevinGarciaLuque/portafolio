@@ -44,6 +44,15 @@ r.get('/stats', async (_q, res) => {
   res.json({ systems: s.n, unread: m.n, pending: p.n, upcoming: u.n });
 });
 
+// Campanita: lo nuevo que requiere atención (mensajes sin leer y reuniones pendientes)
+r.get('/notifications', async (_q, res) => {
+  const [messages] = await pool.query('SELECT id, name, subject, message, created_at FROM messages WHERE is_read=0 ORDER BY created_at DESC LIMIT 8');
+  const [meetings] = await pool.query("SELECT id, name, topic, start_at, created_at FROM meetings WHERE status='pending' ORDER BY created_at DESC LIMIT 8");
+  const [[m]] = await pool.query('SELECT COUNT(*) n FROM messages WHERE is_read=0');
+  const [[p]] = await pool.query("SELECT COUNT(*) n FROM meetings WHERE status='pending'");
+  res.json({ unread: m.n, pending: p.n, total: m.n + p.n, messages, meetings });
+});
+
 const FIELDS = ['title_es', 'title_en', 'tagline_es', 'tagline_en', 'desc_es', 'desc_en', 'url', 'image_url', 'video_url', 'tags', 'sort_order', 'visible'];
 const pick = (b) => FIELDS.map((f) => (f === 'visible' ? (b[f] ? 1 : 0) : f === 'sort_order' ? Number(b[f]) || 0 : String(b[f] ?? '')));
 

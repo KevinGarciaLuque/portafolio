@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, getToken, setToken } from '../api.js';
 
 const TABS = [
@@ -318,6 +318,64 @@ function Account() {
   );
 }
 
+// Campanita de notificaciones: se actualiza sola cada 30 s y al cambiar de pestaña
+function Bell({ tab, go }) {
+  const [n, setN] = useState(null);
+  const [open, setOpen] = useState(false);
+  const box = useRef(null);
+
+  useEffect(() => {
+    let live = true;
+    const load = () => api('/admin/notifications', { auth: true }).then((d) => { if (live) setN(d); }).catch(() => {});
+    load();
+    const id = setInterval(load, 30000);
+    return () => { live = false; clearInterval(id); };
+  }, [tab]);
+
+  // El número también aparece en la pestaña del navegador: «(3) Panel»
+  useEffect(() => { document.title = n?.total ? `(${n.total}) Panel administrativo` : 'Panel administrativo'; }, [n?.total]);
+
+  useEffect(() => {
+    if (!open) return;
+    const close = (e) => { if (!box.current?.contains(e.target)) setOpen(false); };
+    const esc = (e) => e.key === 'Escape' && setOpen(false);
+    document.addEventListener('mousedown', close); document.addEventListener('keydown', esc);
+    return () => { document.removeEventListener('mousedown', close); document.removeEventListener('keydown', esc); };
+  }, [open]);
+
+  const total = n?.total || 0;
+  const pick = (t) => { setOpen(false); go(t); };
+  return (
+    <div className="bell" ref={box}>
+      <button type="button" className={`bell-btn ${total ? 'ring' : ''}`} aria-label={`Notificaciones: ${total}`} aria-expanded={open} onClick={() => setOpen(!open)}>
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0" />
+        </svg>
+        {total > 0 && <span className="bell-count">{total > 99 ? '99+' : total}</span>}
+      </button>
+      {open && (
+        <div className="bell-menu" role="menu">
+          <h4>Notificaciones</h4>
+          {!total && <p className="muted">Todo al día ✓</p>}
+          {n?.messages.map((m) => (
+            <button key={`m${m.id}`} type="button" onClick={() => pick('messages')}>
+              <span className="bell-ico">✉</span>
+              <span><b>{m.name}</b> te escribió{m.subject ? `: ${m.subject}` : ''}<small>{m.created_at.slice(0, 16)}</small></span>
+            </button>
+          ))}
+          {n?.meetings.map((m) => (
+            <button key={`r${m.id}`} type="button" onClick={() => pick('meetings')}>
+              <span className="bell-ico">📅</span>
+              <span><b>{m.name}</b> pidió una reunión<small>{m.start_at.slice(0, 16)}</small></span>
+            </button>
+          ))}
+          {n && (n.unread > n.messages.length || n.pending > n.meetings.length) && <p className="muted">Hay más pendientes en Mensajes y Reuniones.</p>}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Admin() {
   const [logged, setLogged] = useState(!!getToken());
   const [tab, setTab] = useState('dash');
@@ -330,7 +388,10 @@ export default function Admin() {
         {TABS.map(([k, l]) => <button key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{l}</button>)}
         <button className="out" onClick={() => { setToken(null); setLogged(false); }}>Salir</button>
       </aside>
-      <section className="admin-main"><h2>{TABS.find((t) => t[0] === tab)[1]}</h2><View /></section>
+      <section className="admin-main">
+        <div className="admin-top"><h2>{TABS.find((t) => t[0] === tab)[1]}</h2><Bell tab={tab} go={setTab} /></div>
+        <View />
+      </section>
     </div>
   );
 }
