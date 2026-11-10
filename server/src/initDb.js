@@ -178,6 +178,47 @@ if (!seeded.n) {
   console.log('Enlaces de proyectos publicados agregados al catálogo');
 }
 
+// Limpieza del catálogo (una sola vez):
+//  1) borra los sistemas de ejemplo que nunca editaste (sin link, sin imagen, sin video y con el texto de relleno)
+//  2) pone descripción real en los proyectos publicados que aún tienen el texto de relleno
+// Lo que ya editaste en el panel NO se toca.
+const [[catSeeded]] = await conn.query("SELECT COUNT(*) n FROM settings WHERE k = 'seed_catalog_v1'");
+if (!catSeeded.n) {
+  const [del] = await conn.query(
+    "DELETE FROM systems WHERE url = '' AND image_url = '' AND video_url = '' AND desc_es = 'Descripción del sistema. Edítala desde el panel administrativo.'"
+  );
+  console.log(`Sistemas de ejemplo eliminados: ${del.affectedRows}`);
+
+  const FILLER = 'Descripción del proyecto. Edítala desde el panel administrativo.';
+  const real = [
+    ['https://equipo.up.railway.app/', 'Equipo', 'Equipment', 'Inventario TIC y mantenimiento preventivo', 'ICT inventory and preventive maintenance',
+      'Sistema web para la gestión de inventario TIC, mantenimiento preventivo y préstamos de equipo.',
+      'Web system to manage ICT inventory, preventive maintenance and equipment loans.'],
+    ['https://kg-studio.vercel.app/', 'KG Studio', 'KG Studio', 'Fotografía profesional de bodas y sesiones', 'Professional wedding and portrait photography',
+      'Sitio web de fotografía profesional de bodas, quince años y sesiones, con portafolio, paquetes y reservas por WhatsApp.',
+      'Professional photography website for weddings, quinceañeras and sessions, with portfolio, packages and WhatsApp booking.'],
+    ['https://coffee1.up.railway.app/', 'AUREO Coffee', 'AUREO Coffee', 'Del origen a tu taza', 'From origin to your cup',
+      'Experiencia web cinematográfica que sigue el recorrido del café, del grano a la taza.',
+      'A cinematic web experience that follows coffee from bean to cup.'],
+    ['https://ktrachogo.com/', 'Ktracho GO', 'Ktracho GO', 'Pide tu viaje y propón tu precio', 'Request a ride and name your price',
+      'Plataforma de transporte en Honduras: el pasajero pide un viaje y propone su precio, y el conductor llega. Registro gratis para pasajeros y conductores.',
+      'Ride platform in Honduras: passengers request a trip and propose their price, and the driver arrives. Free sign-up for passengers and drivers.'],
+    ['https://el-piquete.vercel.app/', 'Encurtidos El Piquete', 'El Piquete Pickles', 'Encurtidos artesanales en Tegucigalpa', 'Artisan pickles in Tegucigalpa',
+      'Tienda en línea de encurtidos artesanales (cebolla, zanahoria y jalapeño) preparados por lotes, con compra en línea y entrega en Tegucigalpa.',
+      'Online store of artisan pickles (onion, carrot and jalapeño) made in batches, with online ordering and delivery in Tegucigalpa.'],
+    ['https://tiendaslauren.com/', 'Tiendas Lauren', 'Tiendas Lauren', 'Maquillaje, carteras y mochilas', 'Makeup, handbags and backpacks',
+      'Catálogo en línea de maquillaje, carteras, mochilas y más, con cotización por WhatsApp.',
+      'Online catalog of makeup, handbags, backpacks and more, with quotes via WhatsApp.'],
+  ];
+  for (const [url, te, ten, ge, gen, de, den] of real) {
+    await conn.query(
+      'UPDATE systems SET title_es=?, title_en=?, tagline_es=?, tagline_en=?, desc_es=?, desc_en=? WHERE url=? AND desc_es=?',
+      [te, ten, ge, gen, de, den, url, FILLER]
+    );
+  }
+  await conn.query("INSERT INTO settings (k, v) VALUES ('seed_catalog_v1', '1')");
+}
+
 // Experiencia laboral (viñetas separadas por salto de línea; la web las muestra una por línea)
 const EXPERIENCE = [
   {

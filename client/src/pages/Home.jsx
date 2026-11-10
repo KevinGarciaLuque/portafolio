@@ -6,6 +6,7 @@ import Hero from '../components/Hero.jsx';
 import Catalog from '../components/Catalog.jsx';
 import Booking from '../components/Booking.jsx';
 import Contact from '../components/Contact.jsx';
+import Testimonials from '../components/Testimonials.jsx';
 import SceneSection from '../components/SceneSection.jsx';
 import SocialLinks from '../components/SocialLinks.jsx';
 import { ScrollTrigger, refreshScroll } from '../lib/motion.js';
@@ -53,12 +54,13 @@ export default function Home() {
           <Link to="/sobre-mi">{t.nav.about}</Link>
           <button onClick={() => go('book')}>{t.nav.book}</button>
           <button onClick={() => go('contact')}>{t.nav.contact}</button>
-          <button className="lang" onClick={() => setLang(lang === 'es' ? 'en' : 'es')}>{lang === 'es' ? 'EN' : 'ES'}</button>
+          <button className="lang" aria-label={lang === 'es' ? 'Switch to English' : 'Cambiar a español'} onClick={() => setLang(lang === 'es' ? 'en' : 'es')}>{lang === 'es' ? 'EN' : 'ES'}</button>
         </div>
       </nav>
-      <main>
+      <main id="main" tabIndex={-1}>
         <Hero />
         <SceneSection variant="wipe" backdrop="projects" hue={205}><Catalog /></SceneSection>
+        {profile.testimonials.some((x) => (x.text_es || x.text_en || '').trim()) && <SceneSection variant="curtain"><Testimonials /></SceneSection>}
         <SceneSection variant="zoom"><Booking /></SceneSection>
         <SceneSection variant="zoom" backdrop="contact" hue={185}><Contact /></SceneSection>
       </main>

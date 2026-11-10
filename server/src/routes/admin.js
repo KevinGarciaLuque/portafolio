@@ -131,7 +131,7 @@ r.put('/availability', async (req, res) => {
   }
 });
 
-const SETTING_KEYS = ['name', 'email', 'phone', 'whatsapp', 'location', 'linkedin', 'github', 'facebook', 'instagram', 'tiktok', 'youtube', 'x', 'experience', 'education', 'photo'];
+const SETTING_KEYS = ['name', 'email', 'phone', 'whatsapp', 'location', 'linkedin', 'github', 'facebook', 'instagram', 'tiktok', 'youtube', 'x', 'experience', 'education', 'testimonials', 'photo'];
 const LINK_KEYS = ['linkedin', 'github', 'facebook', 'instagram', 'tiktok', 'youtube', 'x'];
 
 r.get('/settings', async (_q, res) => {
@@ -143,10 +143,10 @@ r.put('/settings', async (req, res) => {
   const clean = {};
   for (const k of SETTING_KEYS) {
     if (b[k] === undefined) continue;
-    let v = String(b[k]).trim().slice(0, ['experience', 'education'].includes(k) ? 20000 : 200);
+    let v = String(b[k]).trim().slice(0, ['experience', 'education', 'testimonials'].includes(k) ? 20000 : 200);
     if (LINK_KEYS.includes(k) && v && !/^https?:\/\//i.test(v)) return res.status(400).json({ error: `${k}: el enlace debe empezar con https://` });
     if (['phone', 'whatsapp'].includes(k) && v && !/^[+\d][\d\s().-]{5,}$/.test(v)) return res.status(400).json({ error: `${k}: número inválido` });
-    if (k === 'experience' || k === 'education') {
+    if (['experience', 'education', 'testimonials'].includes(k)) {
       try { const a = JSON.parse(v || '[]'); if (!Array.isArray(a)) throw new Error(); } catch { return res.status(400).json({ error: `${k} inválido` }); }
     }
     clean[k] = v;

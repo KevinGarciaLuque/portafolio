@@ -39,10 +39,10 @@ export default function AboutPage() {
           <Link to="/">← {t.nav.home}</Link>
           <Link to="/#book">{t.nav.book}</Link>
           <Link to="/#contact">{t.nav.contact}</Link>
-          <button className="lang" onClick={() => setLang(lang === 'es' ? 'en' : 'es')}>{lang === 'es' ? 'EN' : 'ES'}</button>
+          <button className="lang" aria-label={lang === 'es' ? 'Switch to English' : 'Cambiar a español'} onClick={() => setLang(lang === 'es' ? 'en' : 'es')}>{lang === 'es' ? 'EN' : 'ES'}</button>
         </div>
       </nav>
-      <main style={{ paddingTop: 80 }}>
+      <main id="main" tabIndex={-1} style={{ paddingTop: 80 }}>
         <SceneSection variant="curtain" backdrop="about" hue={195}><About /></SceneSection>
         <SceneSection variant="rise" backdrop="experience" hue={215}><Experience /></SceneSection>
         <SceneSection variant="curtain"><Education /></SceneSection>

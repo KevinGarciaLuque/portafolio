@@ -44,15 +44,15 @@ export default function Contact() {
       </div>
       <form className="form contact-form" onSubmit={submit}>
         <div className="row">
-          <input required placeholder={t.contact.name} value={f.name} onChange={set('name')} maxLength={120} />
-          <input required type="email" placeholder={t.contact.email} value={f.email} onChange={set('email')} maxLength={160} />
+          <input required placeholder={t.contact.name} aria-label={t.contact.name} value={f.name} onChange={set('name')} maxLength={120} />
+          <input required type="email" placeholder={t.contact.email} aria-label={t.contact.email} value={f.email} onChange={set('email')} maxLength={160} />
         </div>
-        <input placeholder={t.contact.subject} value={f.subject} onChange={set('subject')} maxLength={200} />
-        <textarea required rows={6} placeholder={t.contact.message} value={f.message} onChange={set('message')} maxLength={5000} />
+        <input placeholder={t.contact.subject} aria-label={t.contact.subject} value={f.subject} onChange={set('subject')} maxLength={200} />
+        <textarea required rows={6} placeholder={t.contact.message} aria-label={t.contact.message} value={f.message} onChange={set('message')} maxLength={5000} />
         {/* honeypot: los humanos no lo ven */}
         <input className="hp" tabIndex={-1} autoComplete="off" aria-hidden="true" value={f.website} onChange={set('website')} />
         <button className="btn primary" disabled={s.busy}>{s.busy ? t.contact.sending : t.contact.send}</button>
-        {s.msg && <p className={s.ok ? 'ok' : 'err'}>{s.msg}</p>}
+        {s.msg && <p role="status" aria-live="polite" className={s.ok ? 'ok' : 'err'}>{s.msg}</p>}
       </form>
     </section>
   );

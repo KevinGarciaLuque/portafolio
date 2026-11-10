@@ -19,7 +19,9 @@ export function useMotionMode() {
     const q = new URLSearchParams(window.location.search);
     if (q.get('static') === '1') return 'static';
     if (q.get('live') === '1') return 'live';
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches || isLowEnd() ? 'static' : 'live';
+    // «Ahorro de datos» del navegador: no descargar cientos de fotogramas, solo el póster
+    const saveData = !!navigator.connection?.saveData;
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches || isLowEnd() || saveData ? 'static' : 'live';
   };
   const [mode, setMode] = useState(compute);
   useEffect(() => {

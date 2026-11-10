@@ -1,20 +1,29 @@
-import { StrictMode } from 'react';
+import { StrictMode, Suspense, lazy } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { WhatsAppFloat } from './components/SocialLinks.jsx';
-import { LangProvider } from './i18n.jsx';
+import { LangProvider, useLang } from './i18n.jsx';
 import { ProfileProvider } from './profileContext.jsx';
 import Home from './pages/Home.jsx';
-import Admin from './pages/Admin.jsx';
-import AboutPage from './pages/AboutPage.jsx';
 import NotFound from './pages/NotFound.jsx';
+// El admin y las páginas secundarias se descargan solo cuando se visitan (el inicio pesa menos)
+const Admin = lazy(() => import('./pages/Admin.jsx'));
+const AboutPage = lazy(() => import('./pages/AboutPage.jsx'));
+const ProjectPage = lazy(() => import('./pages/ProjectPage.jsx'));
 import './styles.css';
 import './cinema.css';
 
-// Botón flotante de WhatsApp en todas las páginas públicas (no en el panel admin)
-function GlobalWhatsApp() {
+// Elementos comunes de las páginas públicas (no en el panel admin): enlace para saltar al contenido y botón de WhatsApp
+function GlobalChrome() {
   const { pathname } = useLocation();
-  return pathname.startsWith('/admin') ? null : <WhatsAppFloat />;
+  const { t } = useLang();
+  if (pathname.startsWith('/admin')) return null;
+  return (
+    <>
+      <a className="skip-link" href="#main">{t.skip}</a>
+      <WhatsAppFloat />
+    </>
+  );
 }
 
 createRoot(document.getElementById('root')).render(
@@ -22,13 +31,16 @@ createRoot(document.getElementById('root')).render(
     <LangProvider>
       <ProfileProvider>
       <BrowserRouter>
-        <GlobalWhatsApp />
+        <GlobalChrome />
+        <Suspense fallback={null}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/sobre-mi" element={<AboutPage />} />
+          <Route path="/proyecto/:id" element={<ProjectPage />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        </Suspense>
       </BrowserRouter>
       </ProfileProvider>
     </LangProvider>

@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import compression from 'compression';
 import helmet from 'helmet';
 import path from 'path';
 import { existsSync, readFileSync } from 'fs';
@@ -28,11 +29,15 @@ app.use(helmet({
   },
 }));
 
+// Comprime JS, CSS, HTML y JSON (el bundle baja de ~590 kB a ~200 kB por la red)
+app.use(compression());
+
 // En desarrollo la web corre en Vite (otro puerto); en producción es el mismo origen
 if (!isProd) app.use(cors({ origin: process.env.CLIENT_ORIGIN }));
 app.use(express.json({ limit: '1mb' }));
 
-app.use('/uploads', express.static(UPLOAD_DIR));
+// Los nombres de archivo son aleatorios y nunca se reutilizan: caché larga e inmutable
+app.use('/uploads', express.static(UPLOAD_DIR, { maxAge: '30d', immutable: true }));
 app.use('/uploads', (_req, res) => res.status(404).end()); // un archivo inexistente no debe devolver la página principal
 app.use('/api', publicRoutes);
 app.use('/api/admin', adminRoutes);
@@ -47,9 +52,12 @@ if (existsSync(dist)) {
   app.get('/robots.txt', (req, res) => {
     res.type('text/plain').send(`User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api/\n\nSitemap: ${siteUrl(req)}/sitemap.xml\n`);
   });
-  app.get('/sitemap.xml', (req, res) => {
+  app.get('/sitemap.xml', async (req, res) => {
     const base = siteUrl(req);
-    const urls = ['/', '/sobre-mi'].map((p) => `  <url><loc>${base}${p}</loc></url>`).join('\n');
+    let projects = [];
+    try { [projects] = await pool.query('SELECT id FROM systems WHERE visible=1 ORDER BY sort_order, id'); } catch { /* sin proyectos */ }
+    const paths = ['/', '/sobre-mi', ...projects.map((p) => `/proyecto/${p.id}`)];
+    const urls = paths.map((p) => `  <url><loc>${base}${p}</loc></url>`).join('\n');
     res.type('application/xml').send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`);
   });
 
@@ -68,7 +76,7 @@ if (existsSync(dist)) {
         const [[row]] = await pool.query("SELECT v FROM settings WHERE k = 'photo'");
         if (row?.v?.startsWith('/uploads/')) ogImage = `<meta property="og:image" content="${base}${row.v}" />\n    <meta name="twitter:image" content="${base}${row.v}" />`;
       } catch { /* sin foto: se omite */ }
-      res.type('html').send(template.replaceAll('__SITE_URL__', base).replace('<!--OG_IMAGE-->', ogImage));
+      res.set('Cache-Control', 'no-cache').type('html').send(template.replaceAll('__SITE_URL__', base).replace('<!--OG_IMAGE-->', ogImage));
     } catch (e) { next(e); }
   });
 }

@@ -26,6 +26,7 @@ export function ProfileProvider({ children }) {
     social: Object.fromEntries(['linkedin', 'github', 'facebook', 'instagram', 'tiktok', 'youtube', 'x'].map((k) => [k, data[k] || ''])),
     experience: parseList(data.experience),
     education: parseList(data.education),
+    testimonials: parseList(data.testimonials),
   };
   return <Ctx.Provider value={{ profile }}>{children}</Ctx.Provider>;
 }

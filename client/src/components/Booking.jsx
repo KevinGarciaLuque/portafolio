@@ -77,10 +77,10 @@ export default function Booking() {
           {time && (
             <form onSubmit={submit} className="form">
               <p className="chosen">{t.book.selected} <b>{day} · {time}</b></p>
-              <input required placeholder={t.book.name} value={form.name} onChange={set('name')} maxLength={120} />
-              <input required type="email" placeholder={t.book.email} value={form.email} onChange={set('email')} maxLength={160} />
-              <input placeholder={t.book.phone} value={form.phone} onChange={set('phone')} maxLength={40} />
-              <textarea rows={3} placeholder={t.book.topic} value={form.topic} onChange={set('topic')} maxLength={3000} />
+              <input required placeholder={t.book.name} aria-label={t.book.name} value={form.name} onChange={set('name')} maxLength={120} />
+              <input required type="email" placeholder={t.book.email} aria-label={t.book.email} value={form.email} onChange={set('email')} maxLength={160} />
+              <input placeholder={t.book.phone} aria-label={t.book.phone} value={form.phone} onChange={set('phone')} maxLength={40} />
+              <textarea rows={3} placeholder={t.book.topic} aria-label={t.book.topic} value={form.topic} onChange={set('topic')} maxLength={3000} />
               <button className="btn primary" disabled={state.busy}>{state.busy ? t.book.sending : t.book.send}</button>
             </form>
           )}

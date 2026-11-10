@@ -211,6 +211,7 @@ function Profile() {
   const [f, setF] = useState(null);
   const [exp, setExp] = useState([]);
   const [edu, setEdu] = useState([]);
+  const [testi, setTesti] = useState([]);
   const [m, setM] = useState({ t: '', ok: false });
   const [tab, setTab] = useState('photo');
   useEffect(() => {
@@ -218,6 +219,7 @@ function Profile() {
       setF(d);
       try { setExp(JSON.parse(d.experience || '[]')); } catch { setExp([]); }
       try { setEdu(JSON.parse(d.education || '[]')); } catch { setEdu([]); }
+      try { setTesti(JSON.parse(d.testimonials || '[]')); } catch { setTesti([]); }
     });
   }, []);
   if (!f) return <p className="muted">Cargando…</p>;
@@ -225,6 +227,8 @@ function Profile() {
   const updExp = (i, k, v) => setExp(exp.map((x, j) => (j === i ? { ...x, [k]: v } : x)));
   const move = (i, d) => { const a = [...exp]; const j = i + d; if (j < 0 || j >= a.length) return; [a[i], a[j]] = [a[j], a[i]]; setExp(a); };
   const updEdu = (i, k, v) => setEdu(edu.map((x, j) => (j === i ? { ...x, [k]: v } : x)));
+  const updTesti = (i, k, v) => setTesti(testi.map((x, j) => (j === i ? { ...x, [k]: v } : x)));
+  const moveTesti = (i, d) => { const a = [...testi]; const j = i + d; if (j < 0 || j >= a.length) return; [a[i], a[j]] = [a[j], a[i]]; setTesti(a); };
   const moveEdu = (i, d) => { const a = [...edu]; const j = i + d; if (j < 0 || j >= a.length) return; [a[i], a[j]] = [a[j], a[i]]; setEdu(a); };
 
   async function upPhoto(e) {
@@ -237,14 +241,14 @@ function Profile() {
   async function save(e) {
     e.preventDefault();
     try {
-      await api('/admin/settings', { method: 'PUT', auth: true, body: { ...f, experience: JSON.stringify(exp), education: JSON.stringify(edu) } });
+      await api('/admin/settings', { method: 'PUT', auth: true, body: { ...f, experience: JSON.stringify(exp), education: JSON.stringify(edu), testimonials: JSON.stringify(testi) } });
       setM({ t: 'Guardado ✓ (recarga la página pública para verlo)', ok: true });
     } catch (x) { setM({ t: x.message, ok: false }); }
   }
   return (
     <form className="form" onSubmit={save}>
       <div className="subtabs" role="tablist">
-        {[['photo', 'Foto'], ['contact', 'Contacto'], ['social', 'Redes sociales'], ['exp', 'Experiencia'], ['edu', 'Formación']].map(([k, l]) => (
+        {[['photo', 'Foto'], ['contact', 'Contacto'], ['social', 'Redes sociales'], ['exp', 'Experiencia'], ['edu', 'Formación'], ['testi', 'Testimonios']].map(([k, l]) => (
           <button key={k} type="button" role="tab" aria-selected={tab === k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{l}</button>
         ))}
       </div>
@@ -292,6 +296,21 @@ function Profile() {
           </div>
         ))}
         <button type="button" className="btn ghost" onClick={() => setEdu([...edu, { title_es: '', title_en: '', org: '', year: '' }])}>+ Agregar formación</button>
+      </div>}
+      {tab === 'testi' && <div className="panel">
+        <h4>Testimonios de clientes</h4>
+        <p className="muted">La sección «Testimonios» solo aparece en la página si hay al menos uno con texto. Pide permiso al cliente antes de publicarlo.</p>
+        {testi.map((x, i) => (
+          <div key={i} className="panel exp-edit">
+            <div className="row"><input placeholder="Nombre del cliente" value={x.name} onChange={(e) => updTesti(i, 'name', e.target.value)} /><input placeholder="Cargo / empresa" value={x.role} onChange={(e) => updTesti(i, 'role', e.target.value)} /></div>
+            <div className="row"><textarea rows={3} placeholder="Testimonio (ES)" value={x.text_es} onChange={(e) => updTesti(i, 'text_es', e.target.value)} /><textarea rows={3} placeholder="Testimonial (EN)" value={x.text_en} onChange={(e) => updTesti(i, 'text_en', e.target.value)} /></div>
+            <div className="actions">
+              <button type="button" onClick={() => moveTesti(i, -1)}>↑</button><button type="button" onClick={() => moveTesti(i, 1)}>↓</button>
+              <button type="button" className="danger" onClick={() => setTesti(testi.filter((_, j) => j !== i))}>Eliminar</button>
+            </div>
+          </div>
+        ))}
+        <button type="button" className="btn ghost" onClick={() => setTesti([...testi, { name: '', role: '', text_es: '', text_en: '' }])}>+ Agregar testimonio</button>
       </div>}
       <div><button className="btn primary">Guardar perfil</button></div>
       {m.t && <p className={m.ok ? 'ok' : 'err'}>{m.t}</p>}

@@ -12,6 +12,12 @@ r.get('/systems', async (_req, res) => {
   res.json(rows);
 });
 
+r.get('/systems/:id', async (req, res) => {
+  const [rows] = await pool.query('SELECT * FROM systems WHERE id=? AND visible=1', [req.params.id]);
+  if (!rows[0]) return res.status(404).json({ error: 'No encontrado' });
+  res.json(rows[0]);
+});
+
 r.get('/profile', async (_req, res) => {
   const [rows] = await pool.query('SELECT k, v FROM settings');
   res.json(Object.fromEntries(rows.map((x) => [x.k, x.v])));
