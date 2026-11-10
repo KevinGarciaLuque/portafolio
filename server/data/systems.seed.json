@@ -1,0 +1,90 @@
+[
+  {
+    "title_es": "Medic-KG",
+    "title_en": "Medic-KG",
+    "tagline_es": "Digitaliza tu clínica",
+    "tagline_en": "Digitize your clinic",
+    "desc_es": "Sistema de gestión clínica: pacientes, citas y expedientes clínicos desde una sola plataforma, con soporte multi-clínica y acceso seguro.",
+    "desc_en": "Clinic management system: patients, appointments and medical records from a single platform, with multi-clinic support and secure access.",
+    "url": "https://medickg.com/",
+    "image_url": "/previews/medickg.webp",
+    "tags": "Salud,Citas,Expedientes,Multi-clínica"
+  },
+  {
+    "title_es": "Mantenimiento Preventivo TIC",
+    "title_en": "ICT Preventive Maintenance",
+    "tagline_es": "Cada pieza, bajo control",
+    "tagline_en": "Every piece, under control",
+    "desc_es": "Inventario, mantenimientos preventivos y correctivos de todos los equipos del hospital en un solo lugar, con reporte de problemas para los usuarios.",
+    "desc_en": "Inventory and preventive and corrective maintenance for all hospital equipment in one place, with problem reporting for users.",
+    "url": "https://equipo.up.railway.app/",
+    "image_url": "/previews/equipo.webp",
+    "tags": "Inventario,Mantenimiento,Hospital,TIC"
+  },
+  {
+    "title_es": "SmartCoop",
+    "title_en": "SmartCoop",
+    "tagline_es": "Tu cooperativa, siempre contigo",
+    "tagline_en": "Your cooperative, always with you",
+    "desc_es": "Plataforma cooperativa digital para gestionar aportaciones, préstamos y cuentas desde un solo lugar, de forma segura, rápida y eficiente.",
+    "desc_en": "Digital cooperative platform to manage contributions, loans and accounts in one place, securely, quickly and efficiently.",
+    "url": "https://smartcoop.up.railway.app/",
+    "image_url": "/previews/smartcoop.webp",
+    "tags": "Cooperativas,Préstamos,Aportaciones,Finanzas"
+  },
+  {
+    "title_es": "KG Studio",
+    "title_en": "KG Studio",
+    "tagline_es": "Bodas, quince años y sesiones que se recuerdan",
+    "tagline_en": "Weddings, quinceañeras and sessions to remember",
+    "desc_es": "Sitio para un estudio de fotografía profesional: portafolio, paquetes y reservas por WhatsApp, con inicio de sesión.",
+    "desc_en": "Website for a professional photography studio: portfolio, packages and WhatsApp booking, with user login.",
+    "url": "https://kg-studio.vercel.app/",
+    "image_url": "/previews/kg-studio.webp",
+    "tags": "Fotografía,Portafolio,Reservas"
+  },
+  {
+    "title_es": "Aureo Coffee",
+    "title_en": "Aureo Coffee",
+    "tagline_es": "Todo comienza con un grano",
+    "tagline_en": "It all starts with a bean",
+    "desc_es": "Sitio inmersivo para una marca de café: historia, orígenes, proceso, menú y contacto, con animaciones que avanzan al hacer scroll.",
+    "desc_en": "Immersive website for a coffee brand: story, origins, process, menu and contact, with animations driven by scrolling.",
+    "url": "https://coffee1.up.railway.app/",
+    "image_url": "/previews/coffee1.webp",
+    "tags": "Marca,Sitio web,Animación"
+  },
+  {
+    "title_es": "Ktracho GO",
+    "title_en": "Ktracho GO",
+    "tagline_es": "Tú pones el precio. Tu conductor llega.",
+    "tagline_en": "You set the price. Your driver arrives.",
+    "desc_es": "Plataforma de viajes en la ciudad donde el pasajero propone el precio y los conductores cercanos hacen ofertas. Registro de pasajeros y conductores; viaja en carro, moto o carro amplio y paga en efectivo.",
+    "desc_en": "City ride platform where the passenger proposes the price and nearby drivers make offers. Passenger and driver sign-up; ride by car, motorbike or large car and pay in cash.",
+    "url": "https://ktrachogo.com/",
+    "image_url": "/previews/ktrachogo.webp",
+    "tags": "Transporte,Pasajeros,Conductores"
+  },
+  {
+    "title_es": "El Piquete",
+    "title_en": "El Piquete",
+    "tagline_es": "Todo comienza fresco",
+    "tagline_en": "It all starts fresh",
+    "desc_es": "Tienda en línea con catálogo de productos, línea de picante, combos, carrito de compras y contacto por WhatsApp.",
+    "desc_en": "Online store with a product catalog, a hot-sauce line, combos, shopping cart and WhatsApp contact.",
+    "url": "https://el-piquete.vercel.app/",
+    "image_url": "/previews/el-piquete.webp",
+    "tags": "Tienda en línea,Carrito,Combos"
+  },
+  {
+    "title_es": "Tiendas Lauren",
+    "title_en": "Tiendas Lauren",
+    "tagline_es": "Todo lo que buscas en un solo lugar",
+    "tagline_en": "Everything you love in one place",
+    "desc_es": "Tienda en línea con categorías de belleza, hogar, joyería, perfumes, ropa, telefonía y bebés, con carrito, favoritos y registro de clientes.",
+    "desc_en": "Online store with beauty, home, jewelry, perfume, clothing, phones and baby categories, with cart, favorites and customer sign-up.",
+    "url": "https://tiendaslauren.com/",
+    "image_url": "/previews/tiendaslauren.webp",
+    "tags": "Tienda en línea,Carrito,Catálogo"
+  }
+]

@@ -1,5 +1,6 @@
 import mysql from 'mysql2/promise';
 import bcrypt from 'bcryptjs';
+import { existsSync, readFileSync } from 'fs';
 import 'dotenv/config';
 import { dbConfig, DB_NAME } from './db.js';
 
@@ -156,6 +157,32 @@ const defaults = {
   ]),
 };
 for (const [k, v] of Object.entries(defaults)) await conn.query('INSERT IGNORE INTO settings (k, v) VALUES (?, ?)', [k, v]);
+
+// SEED_SYSTEMS=true: carga los sistemas de server/data/systems.seed.json (úsalo una vez y quítalo).
+// - Elimina los sistemas de ejemplo que siguen sin enlace.
+// - Inserta solo los que aún no existen (se compara por URL): nunca pisa lo que editaste en el panel.
+if (String(process.env.SEED_SYSTEMS || '').trim().toLowerCase() === 'true') {
+  const file = new URL('../data/systems.seed.json', import.meta.url);
+  if (!existsSync(file)) {
+    console.error('SEED_SYSTEMS: no existe server/data/systems.seed.json');
+  } else {
+    const items = JSON.parse(readFileSync(file, 'utf8'));
+    const [del] = await conn.query("DELETE FROM systems WHERE url = '' AND desc_es LIKE 'Descripción del sistema. Edítala%'");
+    const [[{ m }]] = await conn.query('SELECT COALESCE(MAX(sort_order), 0) AS m FROM systems');
+    let order = Number(m), added = 0;
+    for (const s of items) {
+      const [ex] = await conn.query('SELECT id FROM systems WHERE url = ?', [s.url]);
+      if (ex.length) continue;
+      await conn.query(
+        `INSERT INTO systems (title_es,title_en,tagline_es,tagline_en,desc_es,desc_en,url,image_url,video_url,tags,sort_order)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
+        [s.title_es, s.title_en || s.title_es, s.tagline_es || '', s.tagline_en || '', s.desc_es || '', s.desc_en || '',
+          s.url, s.image_url || '', s.video_url || '', s.tags || '', ++order]);
+      added++;
+    }
+    console.log(`SEED_SYSTEMS: ${added} sistemas agregados, ${del.affectedRows} de ejemplo eliminados (quita la variable SEED_SYSTEMS)`);
+  }
+}
 
 await conn.end();
 console.log('Base de datos lista:', DB);
