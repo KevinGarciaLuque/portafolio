@@ -178,6 +178,75 @@ if (!seeded.n) {
   console.log('Enlaces de proyectos publicados agregados al catálogo');
 }
 
+// Experiencia laboral (viñetas separadas por salto de línea; la web las muestra una por línea)
+const EXPERIENCE = [
+  {
+    role_es: 'Quality Assurance Automation Engineer', role_en: 'Quality Assurance Automation Engineer',
+    company: 'Palladium Group (U.S.A.) · Remoto', period: 'Ene 2024 — Ago 2026',
+    desc_es: [
+      '• Diseño y ejecución de pruebas: planes y casos de prueba funcionales, de regresión y smoke testing para sistemas web gubernamentales.',
+      '• Automatización de pruebas: scripts con Selenium WebDriver, JUnit 5, Maven y WebDriverManager para validar flujos críticos de negocio.',
+      '• Pruebas de APIs: validación de endpoints REST con Postman, análisis de respuestas JSON y verificación de integridad de datos.',
+      '• Evidencias y reportes: reportes automáticos con Surefire HTML Reports y documentación de resultados en Excel para los equipos de desarrollo.',
+      '• Metodologías ágiles: participación en sprints Scrum, seguimiento de incidencias y apoyo en revisiones de entregas (QA Sign-Off).',
+      '• Entorno técnico: Java, Python · JUnit 5, Selenium, Cucumber, Postman · Maven · Git/GitHub · Surefire HTML, matrices de pruebas (Excel) · Jira, Teams, Slack, Trello.',
+    ].join('\n'),
+    desc_en: [
+      '• Test design and execution: functional, regression and smoke test plans and cases for government web systems.',
+      '• Test automation: scripts with Selenium WebDriver, JUnit 5, Maven and WebDriverManager to validate critical business flows.',
+      '• API testing: REST endpoint validation with Postman, JSON response analysis and data integrity checks.',
+      '• Evidence and reporting: automated reports with Surefire HTML Reports and results documented in Excel for development teams.',
+      '• Agile methodologies: participation in Scrum sprints, issue tracking and support in delivery reviews (QA Sign-Off).',
+      '• Tech environment: Java, Python · JUnit 5, Selenium, Cucumber, Postman · Maven · Git/GitHub · Surefire HTML, test matrices (Excel) · Jira, Teams, Slack, Trello.',
+    ].join('\n'),
+  },
+  {
+    role_es: 'Desarrollador web', role_en: 'Web Developer',
+    company: 'Hospital María (Especialidades Pediátricas)', period: '2022 — Actual',
+    desc_es: [
+      '• Sistema de vacunación: creación de un sistema completo para la gestión de pacientes, control de vacunas, historial clínico y generación de reportes.',
+      '• Web services para laboratorio: servicios web que integran sistemas internos, automatizan procesos de resultados y garantizan la interoperabilidad entre aplicaciones.',
+      '• Bases de datos: SQL Server y MySQL, diseño de estructuras de datos, procedimientos almacenados, consultas avanzadas, optimización de rendimiento y gestión de respaldos.',
+    ].join('\n'),
+    desc_en: [
+      '• Vaccination system: built a complete system for patient management, vaccine control, clinical history and report generation.',
+      '• Laboratory web services: web services that integrate internal systems, automate results processing and ensure interoperability between applications.',
+      '• Databases: SQL Server and MySQL, data structure design, stored procedures, advanced queries, performance tuning and backup management.',
+    ].join('\n'),
+  },
+  {
+    role_es: 'Técnico en Informática', role_en: 'IT Technician',
+    company: 'Hospital María (Especialidades Pediátricas)', period: '2020 — 2022',
+    desc_es: [
+      '• Soporte técnico a usuarios: resolución de problemas con equipos y software, y capacitación en el uso de tecnología.',
+      '• Mantenimiento de equipos y red: mantenimiento preventivo y correctivo de equipos informáticos.',
+      '• Instalación y configuración de sistemas: instalación y configuración de software.',
+      '• Gestión y respaldo de datos: copias de seguridad de datos críticos y documentación de todas las actividades de soporte y mantenimiento tecnológico.',
+    ].join('\n'),
+    desc_en: [
+      '• User technical support: troubleshooting hardware and software issues and training users on technology.',
+      '• Equipment and network maintenance: preventive and corrective maintenance of computer equipment.',
+      '• System installation and setup: software installation and configuration.',
+      '• Data management and backup: backups of critical data and documentation of all support and technology maintenance activities.',
+    ].join('\n'),
+  },
+];
+
+// Experiencia inicial: una sola vez, y solo si el campo está vacío o aún tiene el puesto de ejemplo
+const [[expSeeded]] = await conn.query("SELECT COUNT(*) n FROM settings WHERE k = 'seed_experience_v1'");
+if (!expSeeded.n) {
+  const [expRows] = await conn.query("SELECT v FROM settings WHERE k = 'experience'");
+  const cur = expRows[0]?.v;
+  if (!cur || cur === '[]' || cur.includes('Tu empresa / Freelance')) {
+    await conn.query(
+      "INSERT INTO settings (k, v) VALUES ('experience', ?) ON DUPLICATE KEY UPDATE v = VALUES(v)",
+      [JSON.stringify(EXPERIENCE)]
+    );
+    console.log('Experiencia laboral inicial agregada');
+  }
+  await conn.query("INSERT INTO settings (k, v) VALUES ('seed_experience_v1', '1')");
+}
+
 // WhatsApp inicial: una sola vez y solo si está vacío (lo que cambies luego en el panel se respeta)
 const [[waSeeded]] = await conn.query("SELECT COUNT(*) n FROM settings WHERE k = 'seed_whatsapp_v1'");
 if (!waSeeded.n) {
@@ -203,10 +272,7 @@ const defaults = {
     { title_es: 'Curso: Relaciones Interpersonales', title_en: 'Course: Interpersonal Relationships', org: 'INFOP', year: '2017' },
     { title_es: 'Curso: Operador de Paquetes bajo Windows (Word, Excel, PowerPoint, Publisher)', title_en: 'Course: Windows Office Suite Operator (Word, Excel, PowerPoint, Publisher)', org: 'INFOP', year: '2008' },
   ]),
-  experience: JSON.stringify([
-    { role_es: 'Desarrollador Full-Stack', role_en: 'Full-Stack Developer', company: 'Tu empresa / Freelance', period: '2022 — Actual',
-      desc_es: 'Edita este puesto desde el panel administrativo.', desc_en: 'Edit this position from the admin panel.' },
-  ]),
+  experience: JSON.stringify(EXPERIENCE),
 };
 for (const [k, v] of Object.entries(defaults)) await conn.query('INSERT IGNORE INTO settings (k, v) VALUES (?, ?)', [k, v]);
 
