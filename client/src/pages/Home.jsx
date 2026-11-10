@@ -40,6 +40,28 @@ export default function Home() {
   }, []);
 
   const [menu, setMenu] = useState(false);
+  const [active, setActive] = useState('');
+  useEffect(() => {
+    if (!menu) return;
+    const k = (e) => e.key === 'Escape' && setMenu(false);
+    window.addEventListener('keydown', k);
+    return () => window.removeEventListener('keydown', k);
+  }, [menu]);
+
+  // Resalta en el menú la sección que está a la vista
+  useEffect(() => {
+    const ids = ['catalog', 'book', 'contact'];
+    const seen = new Set();
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => (e.isIntersecting ? seen.add(e.target.id) : seen.delete(e.target.id)));
+      setActive(ids.find((i) => seen.has(i)) || '');
+    }, { rootMargin: '-40% 0px -55% 0px' });
+    const watch = () => ids.forEach((i) => { const el = document.getElementById(i); if (el) io.observe(el); });
+    watch();
+    const tm = setTimeout(watch, 1200); // por si alguna sección carga después
+    return () => { io.disconnect(); clearTimeout(tm); };
+  }, []);
+
   const go = (id) => { setMenu(false); document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }); };
 
   return (
@@ -50,10 +72,10 @@ export default function Home() {
         <a className="logo" href="#top" onClick={(e) => { e.preventDefault(); go('top'); }}>{profile.name.split(' ')[0].toUpperCase()}<i>.</i></a>
         <button className="burger" aria-label="Menú" aria-expanded={menu} onClick={() => setMenu(!menu)}><span /><span /><span /></button>
         <div className={`nav-links ${menu ? 'open' : ''}`}>
-          <button onClick={() => go('catalog')}>{t.nav.catalog}</button>
+          <button className={active === 'catalog' ? 'active' : ''} onClick={() => go('catalog')}>{t.nav.catalog}</button>
           <Link to="/sobre-mi">{t.nav.about}</Link>
-          <button onClick={() => go('book')}>{t.nav.book}</button>
-          <button onClick={() => go('contact')}>{t.nav.contact}</button>
+          <button className={active === 'book' ? 'active' : ''} onClick={() => go('book')}>{t.nav.book}</button>
+          <button className={active === 'contact' ? 'active' : ''} onClick={() => go('contact')}>{t.nav.contact}</button>
           <button className="lang" aria-label={lang === 'es' ? 'Switch to English' : 'Cambiar a español'} onClick={() => setLang(lang === 'es' ? 'en' : 'es')}>{lang === 'es' ? 'EN' : 'ES'}</button>
         </div>
       </nav>

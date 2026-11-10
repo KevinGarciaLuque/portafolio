@@ -13,7 +13,6 @@ export default function ProjectPage() {
   const [s, setS] = useState(undefined); // undefined = cargando, null = no existe
 
   useEffect(() => {
-    window.scrollTo(0, 0);
     setS(undefined);
     api(`/systems/${id}`).then(setS).catch(() => setS(null));
   }, [id]);

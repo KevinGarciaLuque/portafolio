@@ -13,9 +13,14 @@ export default function AboutPage() {
   const { t, lang, setLang } = useLang();
   const { profile } = useProfile();
   const [menu, setMenu] = useState(false);
+  useEffect(() => {
+    if (!menu) return;
+    const k = (e) => e.key === 'Escape' && setMenu(false);
+    window.addEventListener('keydown', k);
+    return () => window.removeEventListener('keydown', k);
+  }, [menu]);
 
   useEffect(() => {
-    window.scrollTo(0, 0);
     document.title = `${t.nav.about} · ${profile.name}`;
   }, [t.nav.about, profile.name]);
 
