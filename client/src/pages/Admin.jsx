@@ -212,6 +212,7 @@ function Profile() {
   const [exp, setExp] = useState([]);
   const [edu, setEdu] = useState([]);
   const [m, setM] = useState({ t: '', ok: false });
+  const [tab, setTab] = useState('photo');
   useEffect(() => {
     api('/admin/settings', { auth: true }).then((d) => {
       setF(d);
@@ -242,23 +243,28 @@ function Profile() {
   }
   return (
     <form className="form" onSubmit={save}>
-      <div className="panel">
+      <div className="subtabs" role="tablist">
+        {[['photo', 'Foto'], ['contact', 'Contacto'], ['social', 'Redes sociales'], ['exp', 'Experiencia'], ['edu', 'Formación']].map(([k, l]) => (
+          <button key={k} type="button" role="tab" aria-selected={tab === k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{l}</button>
+        ))}
+      </div>
+      {tab === 'photo' && <div className="panel">
         <h4>Foto de perfil</h4>
         {f.photo && <img src={f.photo} alt="" style={{ width: 120, height: 120, borderRadius: '50%', objectFit: 'cover', display: 'block', marginBottom: 12 }} />}
         <label className="file">Subir foto<input type="file" accept="image/*" onChange={upPhoto} /><small>{f.photo}</small></label>
         {f.photo && <button type="button" className="danger" onClick={() => setF({ ...f, photo: '' })}>Quitar foto</button>}
         <p className="muted">Después de subirla pulsa «Guardar perfil».</p>
-      </div>
-      <div className="panel">
+      </div>}
+      {tab === 'contact' && <div className="panel">
         <h4>Contacto</h4>
         {CONTACT_FIELDS.map(([k, l, ph]) => <label key={k} className="file">{l}<input value={f[k] || ''} placeholder={ph} onChange={set(k)} /></label>)}
-      </div>
-      <div className="panel">
+      </div>}
+      {tab === 'social' && <div className="panel">
         <h4>Redes sociales (enlaces completos, https://…)</h4>
         <p className="muted">Las que dejes vacías no se muestran en la página.</p>
         {SOCIAL_FIELDS.map(([k, l]) => <label key={k} className="file">{l}<input type="url" value={f[k] || ''} placeholder={`https://${k}.com/tu-usuario`} onChange={set(k)} /></label>)}
-      </div>
-      <div className="panel">
+      </div>}
+      {tab === 'exp' && <div className="panel">
         <h4>Experiencia</h4>
         {exp.map((x, i) => (
           <div key={i} className="panel exp-edit">
@@ -272,8 +278,8 @@ function Profile() {
           </div>
         ))}
         <button type="button" className="btn ghost" onClick={() => setExp([...exp, { ...EXP_EMPTY }])}>+ Agregar experiencia</button>
-      </div>
-      <div className="panel">
+      </div>}
+      {tab === 'edu' && <div className="panel">
         <h4>Formación y certificaciones</h4>
         {edu.map((x, i) => (
           <div key={i} className="panel exp-edit">
@@ -286,7 +292,7 @@ function Profile() {
           </div>
         ))}
         <button type="button" className="btn ghost" onClick={() => setEdu([...edu, { title_es: '', title_en: '', org: '', year: '' }])}>+ Agregar formación</button>
-      </div>
+      </div>}
       <div><button className="btn primary">Guardar perfil</button></div>
       {m.t && <p className={m.ok ? 'ok' : 'err'}>{m.t}</p>}
     </form>

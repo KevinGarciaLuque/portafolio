@@ -7,7 +7,7 @@ import Catalog from '../components/Catalog.jsx';
 import Booking from '../components/Booking.jsx';
 import Contact from '../components/Contact.jsx';
 import SceneSection from '../components/SceneSection.jsx';
-import SocialLinks, { WhatsAppFloat } from '../components/SocialLinks.jsx';
+import SocialLinks from '../components/SocialLinks.jsx';
 import { ScrollTrigger, refreshScroll } from '../lib/motion.js';
 
 export default function Home() {
@@ -38,7 +38,8 @@ export default function Home() {
     return () => clearTimeout(tm);
   }, []);
 
-  const go = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+  const [menu, setMenu] = useState(false);
+  const go = (id) => { setMenu(false); document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }); };
 
   return (
     <>
@@ -46,7 +47,8 @@ export default function Home() {
       <div className="grain" aria-hidden="true" />
       <nav className={`nav ${scrolled ? 'scrolled' : ''}`}>
         <a className="logo" href="#top" onClick={(e) => { e.preventDefault(); go('top'); }}>{profile.name.split(' ')[0].toUpperCase()}<i>.</i></a>
-        <div className="nav-links">
+        <button className="burger" aria-label="Menú" aria-expanded={menu} onClick={() => setMenu(!menu)}><span /><span /><span /></button>
+        <div className={`nav-links ${menu ? 'open' : ''}`}>
           <button onClick={() => go('catalog')}>{t.nav.catalog}</button>
           <Link to="/sobre-mi">{t.nav.about}</Link>
           <button onClick={() => go('book')}>{t.nav.book}</button>
@@ -60,7 +62,6 @@ export default function Home() {
         <SceneSection variant="zoom"><Booking /></SceneSection>
         <SceneSection variant="zoom" backdrop="contact" hue={185}><Contact /></SceneSection>
       </main>
-      <WhatsAppFloat />
       <footer className="footer">
         <SocialLinks className="footer-social" />
         © {new Date().getFullYear()} {profile.name} · {t.footer}

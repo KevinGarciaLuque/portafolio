@@ -36,7 +36,7 @@ export default function Contact() {
         <h4>{t.contact.direct}</h4>
         <ul>
           {profile.phone && <li><span>☎</span> <a href={`tel:+${tel}`}>{profile.phone}</a></li>}
-          {wa && <li><span>✆</span> <a href={`https://wa.me/${wa}`} target="_blank" rel="noopener noreferrer">{t.contact.write}</a></li>}
+          {wa && <li><span>✆</span> <a href={`https://wa.me/${wa}`} target="_blank" rel="noopener noreferrer">WhatsApp: {profile.whatsapp}</a></li>}
           {profile.email && <li><span>✉</span> <a href={`mailto:${profile.email}`}>{profile.email}</a></li>}
           {profile.location && <li><span>⌖</span> {profile.location}</li>}
         </ul>

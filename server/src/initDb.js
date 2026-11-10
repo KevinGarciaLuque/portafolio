@@ -178,6 +178,14 @@ if (!seeded.n) {
   console.log('Enlaces de proyectos publicados agregados al catálogo');
 }
 
+// WhatsApp inicial: una sola vez y solo si está vacío (lo que cambies luego en el panel se respeta)
+const [[waSeeded]] = await conn.query("SELECT COUNT(*) n FROM settings WHERE k = 'seed_whatsapp_v1'");
+if (!waSeeded.n) {
+  await conn.query("INSERT INTO settings (k, v) VALUES ('whatsapp', '+504 96065564') ON DUPLICATE KEY UPDATE v = IF(v = '' OR v IS NULL, VALUES(v), v)");
+  await conn.query("INSERT INTO settings (k, v) VALUES ('seed_whatsapp_v1', '1')");
+  console.log('WhatsApp inicial configurado');
+}
+
 const defaults = {
   name: 'Kevin García',
   email: 'kevinxgt90@gmail.com',
